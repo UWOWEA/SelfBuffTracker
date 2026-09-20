@@ -1,0 +1,43 @@
+name: Dev Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Dev Package
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm zip git
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Create ZIP bundle
+        run: |
+          SHORT_SHA="$(echo '${{ github.sha }}' | cut -c1-7)"
+          BUILD_NAME="Uwowea_buff_tracker-dev-${SHORT_SHA}"
+          
+          mkdir -p "dist/Uwowea_buff_tracker"
+
+          cp -a *.lua *.toc "dist/Uwowea_buff_tracker/"
+
+          cd dist
+          zip -r "../${BUILD_NAME}.zip" Uwowea_buff_tracker
+
+      - name: Upload dev artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Uwowea_buff_tracker-dev
+          if-no-files-found: error
+          path: Uwowea_buff_tracker-dev-*.zip
+          retention-days: 7

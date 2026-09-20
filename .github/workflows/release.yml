@@ -1,0 +1,109 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm zip git
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create ZIP bundle
+        run: |
+          VERSION="${GITHUB_REF_NAME:-dev-${GITHUB_RUN_NUMBER}}"
+          mkdir -p dist/Uwowea_buff_tracker
+          cp -a *.lua *.toc "dist/self_buff_tracker"
+          cd dist
+          zip -r "../Uwowea_buff_tracker-${VERSION}.zip" Uwowea_buff_tracker
+
+      - name: Upload Arch artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-zip
+          if-no-files-found: error
+          path: Uwowea_buff_tracker-*.zip
+
+  publish-release:
+    name: Publish GitHub Release
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          CURRENT_COMMIT="$(git rev-list -n1 "${CURRENT_TAG}")"
+          PREVIOUS_TAG="$(git describe --tags --abbrev=0 "${CURRENT_COMMIT}^" 2>/dev/null || true)"
+          if [ -n "${PREVIOUS_TAG}" ]; then
+            RELEASE_RANGE="${PREVIOUS_TAG}..${CURRENT_COMMIT}"
+          else
+            RELEASE_RANGE="${CURRENT_COMMIT}"
+          fi
+
+          {
+            echo "## Changes"
+            echo
+            if [ -n "${PREVIOUS_TAG}" ]; then
+              echo "From ${PREVIOUS_TAG} to ${CURRENT_TAG}:"
+              echo
+            else
+              echo "Initial release changes:"
+              echo
+            fi
+
+            changes_found=false
+            while IFS='|' read -r commit_sha commit_subject || [ -n "${commit_sha}" ]; do
+              [ -n "${commit_sha}" ] || continue
+              changes_found=true
+              github_login="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${commit_sha}" --jq '.author.login // empty' 2>/dev/null || true)"
+              short_sha="$(printf '%s' "${commit_sha}" | cut -c1-7)"
+              if [ -n "${github_login}" ]; then
+                echo "- ${commit_subject} (${short_sha}) by @${github_login}"
+              else
+                git_name="$(git show -s --format='%an' "${commit_sha}" 2>/dev/null || echo unknown)"
+                echo "- ${commit_subject} (${short_sha}) by ${git_name}"
+              fi
+            done < <(git log --pretty=format:'%H|%s' "${RELEASE_RANGE}")
+
+            if [ "${changes_found}" = false ]; then
+              echo "- No commits found in ${RELEASE_RANGE}."
+            fi
+          } > RELEASE_NOTES.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          body_path: RELEASE_NOTES.md
+          preserve_order: true
+          generate_release_notes: true
+          append_body: true
+          files: |
+            artifacts/Uwowea_buff_tracker-*.zip
