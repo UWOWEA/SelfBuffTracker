@@ -27,7 +27,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME:-dev-${GITHUB_RUN_NUMBER}}"
           mkdir -p dist/Uwowea_buff_tracker
-          cp -a *.lua *.toc "dist/self_buff_tracker"
+          cp -a *.lua *.toc "dist/Uwowea_buff_tracker"
           cd dist
           zip -r "../Uwowea_buff_tracker-${VERSION}.zip" Uwowea_buff_tracker
 
