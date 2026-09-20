@@ -3,11 +3,13 @@ local addonName, addon = ...
 local function IsBuffSpell(spellID)
     if not spellID then return false end
 
+    -- Retail
     if C_Spell and C_Spell.IsSpellHelpful then
         local ok, result = pcall(C_Spell.IsSpellHelpful, spellID)
         if ok then return result end
     end
 
+    -- Cata / Wrath
     if IsHelpfulSpell then
         local ok, result = pcall(IsHelpfulSpell, spellID)
         if ok then return result end
@@ -177,46 +179,119 @@ local function GetSpellbookEntries(buffsOnly)
     local seen = {}
     local shapeshiftFormIDs = GetShapeshiftFormSpellIDs()
 
-    if not (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines and Enum.SpellBookSpellBank) then
-        return entries
-    end
+    if C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines and Enum and Enum.SpellBookSpellBank then
+        local numSkillLines = C_SpellBook.GetNumSpellBookSkillLines()
+        for skillLineIndex = 1, numSkillLines do
+            local ok, skillLineInfo = pcall(C_SpellBook.GetSpellBookSkillLineInfo, skillLineIndex)
+            if ok and skillLineInfo and not skillLineInfo.shouldHide and not skillLineInfo.isGuild
+                and not ExcludedSkillLineNames[skillLineInfo.name] then
+                local offset = skillLineInfo.itemIndexOffset
+                for i = 1, skillLineInfo.numSpellBookItems do
+                    local index = offset + i
+                    local itemOk, itemInfo = pcall(C_SpellBook.GetSpellBookItemInfo, index, Enum.SpellBookSpellBank.Player)
+                    if itemOk and itemInfo and itemInfo.name and not itemInfo.isPassive and itemInfo.itemType == Enum.SpellBookItemType.Spell
+                        and not seen[itemInfo.name] and not ExcludedUtilitySpellNames[itemInfo.name] then
+                        local spellID = itemInfo.spellID or itemInfo.actionID
+                        if not shapeshiftFormIDs[spellID] then
+                            local isBuff = IsBuffSpell(spellID)
+                            local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
+                            if isRelevant and (not buffsOnly or isBuff) and IsSpellCurrentlyAvailable(spellID) then
+                                seen[itemInfo.name] = true
+                                table.insert(entries, {
+                                    name = itemInfo.name,
+                                    iconID = itemInfo.iconID,
+                                    category = skillLineInfo.name,
+                                    isBuff = isBuff,
+                                })
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    elseif GetNumSpellTabs then
+        local numTabs = GetNumSpellTabs()
+        local bookType = BOOKTYPE_SPELL or "spell"
 
-    local numSkillLines = C_SpellBook.GetNumSpellBookSkillLines()
-    for skillLineIndex = 1, numSkillLines do
-        local ok, skillLineInfo = pcall(C_SpellBook.GetSpellBookSkillLineInfo, skillLineIndex)
-        if ok and skillLineInfo and not skillLineInfo.shouldHide and not skillLineInfo.isGuild
-            and not ExcludedSkillLineNames[skillLineInfo.name] then
-            local offset = skillLineInfo.itemIndexOffset
-            for i = 1, skillLineInfo.numSpellBookItems do
-                local index = offset + i
-                local itemOk, itemInfo = pcall(C_SpellBook.GetSpellBookItemInfo, index, Enum.SpellBookSpellBank.Player)
-                if itemOk and itemInfo and itemInfo.name and not itemInfo.isPassive and itemInfo.itemType == Enum.SpellBookItemType.Spell
-                    and not seen[itemInfo.name] and not ExcludedUtilitySpellNames[itemInfo.name] then
-                    local spellID = itemInfo.spellID or itemInfo.actionID
-                    if not shapeshiftFormIDs[spellID] then
-                        local isBuff = IsBuffSpell(spellID)
-                        local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
-                        if isRelevant and (not buffsOnly or isBuff) and IsSpellCurrentlyAvailable(spellID) then
-                            seen[itemInfo.name] = true
-                            table.insert(entries, {
-                                name = itemInfo.name,
-                                iconID = itemInfo.iconID,
-                                category = skillLineInfo.name,
-                                isBuff = isBuff,
-                            })
+        for tabIndex = 1, numTabs do
+            local name, texture, offset, numSpells, isGuild, offSpecID = GetSpellTabInfo(tabIndex)
+            if name and not ExcludedSkillLineNames[name] then
+                for i = 1, numSpells do
+                    local spellIndex = offset + i
+                    local isPassive = false
+                    
+                    if IsPassiveSpell then
+                        isPassive = IsPassiveSpell(spellIndex, bookType)
+                    end
+                    if not isPassive then
+                        local spellName, spellSubName = GetSpellBookItemName(spellIndex, bookType)
+                        local iconID = GetSpellBookItemTexture(spellIndex, bookType)
+                        
+                        if spellName and not seen[spellName] and not ExcludedUtilitySpellNames[spellName] then
+                            local link = GetSpellBookItemLink and GetSpellBookItemLink(spellIndex, bookType)
+                            local spellID = nil
+
+                            if GetSpellBookItemInfo then
+                                local itemType, id = GetSpellBookItemInfo(spellIndex, bookType)
+                                if itemType == "SPELL" or itemType == "FUTURESPELL" then
+                                    spellID = id
+                                end
+                            end
+
+                            if not spellID and C_Spell and C_Spell.GetSpellInfo then
+                                local info = C_Spell.GetSpellInfo(spellName)
+                                if info and info.spellID then
+                                    spellID = info.spellID
+                                end
+                            end
+
+                            if not spellID and GetSpellBookItemLink then
+                                local link = GetSpellBookItemLink(spellIndex, bookType)
+                                spellID = link and tonumber(link:match("spell:(%d+)"))
+                            end
+
+                            if not (spellID and shapeshiftFormIDs[spellID]) then
+                                local isBuff = IsBuffSpell(spellID)
+                                local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
+
+                                if not isRelevant and spellID then
+                                    isBuff = false
+                                    isRelevant = true
+                                end
+
+                                if isRelevant and (isBuff and buffsOnly) then
+                                    seen[spellName] = true
+                                    table.insert(entries, {
+                                        name = spellName,
+                                        iconID = iconID,
+                                        category = name,
+                                        isBuff = isBuff,
+                                        isRecommended = true,
+                                    })
+                                elseif isRelevant and (not buffsOnly or isBuff) then
+                                    seen[spellName] = true
+                                    table.insert(entries, {
+                                        name = spellName,
+                                        iconID = iconID,
+                                        category = name,
+                                        isBuff = isBuff,
+                                    })
+                                end
+                            end
                         end
                     end
                 end
             end
         end
     end
-
-    for _, entry in ipairs(GetCooldownViewerBuffEntries()) do
-        if seen[entry.name] then
-            for _, existing in ipairs(entries) do
-                if existing.name == entry.name then
-                    existing.isRecommended = true
-                    break
+    if GetCooldownViewerBuffEntries then
+        for _, entry in ipairs(GetCooldownViewerBuffEntries()) do
+            if seen[entry.name] then
+                for _, existing in ipairs(entries) do
+                    if existing.name == entry.name then
+                        existing.isRecommended = true
+                        break
+                    end
                 end
             end
         end
