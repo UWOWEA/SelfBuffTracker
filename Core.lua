@@ -80,24 +80,46 @@ local lastSoundTime = 0
 local previouslyMissing = {}
 
 local function CheckBuffs()
+    if not SelfBuffTrackerDB then return end
+
     if UnitIsDeadOrGhost("player") or UnitOnTaxi("player") then
         container:Hide()
         return
     end
 
-    local activeBuffs = {}
-    for i = 1, 40 do
-        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-        if not ok or not aura then break end
-        if aura.name then
-            activeBuffs[aura.name:lower()] = true
-        end
-    end
-
     local missingSpells = {}
-    for spell, enabled in pairs(SelfBuffTrackerDB.trackedSpells) do
-        if enabled and not activeBuffs[spell:lower()] then
-            table.insert(missingSpells, spell)
+
+    for spellInput, enabled in pairs(SelfBuffTrackerDB.trackedSpells) do
+        if enabled then
+            local isPresent = false
+            local targetName = spellInput:lower()
+            local spellID = tonumber(spellInput)
+
+            if spellID and C_UnitAuras.GetPlayerAuraBySpellID(spellID) then
+                isPresent = true
+            end
+
+            if not isPresent and C_Spell and C_Spell.GetSpellInfo then
+                local info = C_Spell.GetSpellInfo(spellInput)
+                if info and info.spellID and C_UnitAuras.GetPlayerAuraBySpellID(info.spellID) then
+                    isPresent = true
+                end
+            end
+
+            if not isPresent then
+                for i = 1, 255 do
+                    local aura = C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
+                    if not aura then break end
+                    if aura.name and aura.name:lower() == targetName then
+                        isPresent = true
+                        break
+                    end
+                end
+            end
+
+            if not isPresent then
+                table.insert(missingSpells, spellInput)
+            end
         end
     end
 
@@ -106,7 +128,7 @@ local function CheckBuffs()
     end
 
     local numMissing = #missingSpells
-    if numMissing > 0 or not SelfBuffTrackerDB.isLocked then
+    if numMissing > 0 then
         container:Show()
 
         if SelfBuffTrackerDB.isLocked then
@@ -139,7 +161,7 @@ local function CheckBuffs()
             icon:Show()
         end
 
-        if numMissing > 0 and SelfBuffTrackerDB.soundEnabled then
+        if SelfBuffTrackerDB.soundEnabled then
             local now = GetTime()
             local hasNewlyMissing = false
             for _, spellName in ipairs(missingSpells) do
@@ -161,7 +183,15 @@ local function CheckBuffs()
         end
     else
         previouslyMissing = {}
-        container:Hide()
+        if not SelfBuffTrackerDB.isLocked then
+            container:Show()
+            container:SetBackdropColor(0, 0, 0, 0.6)
+            container:SetBackdropBorderColor(1, 1, 1, 1)
+            containerTitle:Show()
+            container:SetSize(120, SelfBuffTrackerDB.iconSize + 10)
+        else
+            container:Hide()
+        end
     end
 end
 addon.CheckBuffs = CheckBuffs
@@ -173,6 +203,7 @@ frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:RegisterEvent("PLAYER_ALIVE")
 frame:RegisterEvent("PLAYER_UNGHOST")
 frame:RegisterEvent("PLAYER_ENTER_COMBAT")
+frame:RegisterEvent("PLAYER_CONTROL_GAINED")
 frame:RegisterEvent("PLAYER_LOGOUT")
 
 frame:SetScript("OnEvent", function(self, event, unit, ...)
@@ -188,7 +219,11 @@ frame:SetScript("OnEvent", function(self, event, unit, ...)
         end
 
         container:ClearAllPoints()
-        container:SetPoint(unpack(SelfBuffTrackerDB.anchorPosition))
+        if SelfBuffTrackerDB.anchorPosition and #SelfBuffTrackerDB.anchorPosition == 5 then
+            container:SetPoint(unpack(SelfBuffTrackerDB.anchorPosition))
+        else
+            container:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
+        end
         self:UnregisterEvent("ADDON_LOADED")
 
         if addon.RefreshLocale then
@@ -207,7 +242,8 @@ frame:SetScript("OnEvent", function(self, event, unit, ...)
             addon.SaveCharacterSnapshot()
         end
     elseif event == "PLAYER_ENTERING_WORLD" or (event == "UNIT_AURA" and unit == "player") or event == "PLAYER_REGEN_DISABLED"
-        or event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" or event == "PLAYER_ENTER_COMBAT" then
+        or event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" or event == "PLAYER_ENTER_COMBAT"
+        or event == "PLAYER_CONTROL_GAINED" then
         CheckBuffs()
     end
 end)
