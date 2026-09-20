@@ -42,6 +42,10 @@ Use `/sbt` or `/buff` in chat to configure the addon:
 
 ## ⚙️ Installation
 
+### Curseforge
+[Curseforge Link](https://www.curseforge.com/wow/addons/uwowea-selfbuftracker)
+
+### Manual
 1.  Download the latest release.
 2.  Extract the `SelfBuffTracker` folder into your WoW directory: `World of Warcraft\_retail_\Interface\AddOns\`
 3.  Restart or reload your game UI (`/reload`).
