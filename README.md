@@ -14,6 +14,18 @@
 *   **Minimalist & Clean UI:** Dynamic icon frames that scale and auto-adjust based on how many buffs are currently missing.
 
 ***
+## Screenshots
+
+<p align="center">
+  <img src="docs/images/tracked_missing.png" alt="Missing buff" width="45%">
+  <img src="docs/images/tracked_active.png" alt="Active buff" width="45%">
+  <br>
+  <img src="docs/images/settings.png" alt="Settings" width="45%">
+  <img src="docs/images/settings_buffs.png" alt="Settings" width="45%">
+  <img src="docs/images/settings_buffs_spellbook.png" alt="Settings" width="45%">
+</p>
+
+***
 
 ## 💻 Chat Commands
 
