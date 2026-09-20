@@ -1,0 +1,23 @@
+## Interface: 120100, 16001
+## Title: Uwowea Library: Buff tracker
+## Notes: Buff tracker
+## Author: Jan Galek
+## Version: 1.0.0
+## X-Category: Uwowea Library
+## SavedVariablesPerCharacter: SelfBuffTrackerDB
+## SavedVariables: SelfBuffTrackerAccountDB
+## Category-enUS: Uwowea
+## Category-ruRU: Uwowea
+## Category-ptBR: Uwowea
+## Category-frFR: Uwowea
+## Category-zhCN: Uwowea
+## Category-zhTW: Uwowea
+
+
+Locales.lua
+Core.lua
+Sounds.lua
+SpellPicker.lua
+Profiles.lua
+Options.lua
+Commands.lua
