@@ -12,7 +12,7 @@
 ## Category-frFR: Uwowea
 ## Category-zhCN: Uwowea
 ## Category-zhTW: Uwowea
-
+## X-Curse-Project-ID: 1703798
 
 Locales.lua
 Core.lua
