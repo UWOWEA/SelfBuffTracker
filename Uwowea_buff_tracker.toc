@@ -21,3 +21,5 @@ SpellPicker.lua
 Profiles.lua
 Options.lua
 Commands.lua
+Container.lua
+EditDialog.lua

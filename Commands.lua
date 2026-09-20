@@ -112,7 +112,10 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
                 if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
             end
         end
-
+    elseif cmd == "cols" and tonumber(args[2]) then
+        SelfBuffTrackerDB.columns = tonumber(args[2])
+        print("|cff00ff00[SBT]|r Počet sloupců nastaven na: " .. args[2])
+        addon.CheckBuffs()
     else
         print("|cff00ff00" .. L.HELP_HEADER .. "|r")
         print("|cffffaa00" .. L.HELP_ADD .. "|r")

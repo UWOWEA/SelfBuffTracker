@@ -1,11 +1,13 @@
 local addonName, addon = ...
 local frame = CreateFrame("Frame", "SelfBuffTrackerFrame", UIParent)
+local L = addon.L
 
 addon.defaultConfig = {
     trackedSpells = {
     },
     iconSize = 50,
     spacing = 10,
+    columns = 3,
     soundEnabled = true,
     soundFile = 567400,
     soundKit = "RAID_WARNING",
@@ -13,46 +15,16 @@ addon.defaultConfig = {
     locale = "auto",
     anchorPosition = { "CENTER", nil, "CENTER", 0, 150 },
     isLocked = false,
+    isFlasksAllowed = false,
 }
 local defaultConfig = addon.defaultConfig
 
-local container = CreateFrame("Frame", "SelfBuffTrackerContainer", UIParent, "BackdropTemplate")
-addon.container = container
-container:SetSize(200, 60)
-container:SetMovable(true)
-container:EnableMouse(true)
-container:RegisterForDrag("LeftButton")
-container:SetClampedToScreen(true)
 
-container:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-    tile = true, tileSize = 16, edgeSize = 12,
-    insets = { left = 3, right = 3, top = 3, bottom = 3 }
-})
-container:SetBackdropColor(0, 0, 0, 0.6)
-
-container:SetScript("OnDragStart", function(self)
-    if not SelfBuffTrackerDB.isLocked then
-        self:StartMoving()
-    end
-end)
-
-container:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, relPoint, x, y = self:GetPoint()
-    SelfBuffTrackerDB.anchorPosition = { point, nil, relPoint, x, y }
-end)
-
-local containerTitle = container:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-containerTitle:SetPoint("BOTTOM", container, "TOP", 0, 4)
-containerTitle:SetText(addon.L.MOVE_HINT)
-addon.ApplyFont(containerTitle, "normalSmall")
 
 local iconPool = {}
 
 local function CreateBuffIcon()
-    local btn = CreateFrame("Button", nil, container, "BackdropTemplate")
+    local btn = CreateFrame("Button", nil, addon.container, "BackdropTemplate")
     btn:SetSize(SelfBuffTrackerDB.iconSize, SelfBuffTrackerDB.iconSize)
     
     local tex = btn:CreateTexture(nil, "BACKGROUND")
@@ -83,7 +55,7 @@ local function CheckBuffs()
     if not SelfBuffTrackerDB then return end
 
     if UnitIsDeadOrGhost("player") or UnitOnTaxi("player") then
-        container:Hide()
+        addon.container:Hide()
         return
     end
 
@@ -106,14 +78,11 @@ local function CheckBuffs()
                 end
             end
 
-            if not isPresent then
-                for i = 1, 255 do
-                    local aura = C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
-                    if not aura then break end
-                    if aura.name and aura.name:lower() == targetName then
-                        isPresent = true
-                        break
-                    end
+            if not isPresent and C_UnitAuras.GetAuraDataBySpellName then
+                local aura = C_UnitAuras.GetAuraDataBySpellName("player", spellInput, "HELPFUL")
+                    or C_UnitAuras.GetAuraDataBySpellName("player", targetName, "HELPFUL")
+                if aura then
+                    isPresent = true
                 end
             end
 
@@ -129,22 +98,30 @@ local function CheckBuffs()
 
     local numMissing = #missingSpells
     if numMissing > 0 then
-        container:Show()
+        addon.container:Show()
 
         if SelfBuffTrackerDB.isLocked then
-            container:SetBackdropColor(0, 0, 0, 0)
-            container:SetBackdropBorderColor(0, 0, 0, 0)
-            containerTitle:Hide()
+            addon.container:SetBackdropColor(0, 0, 0, 0)
+            addon.container:SetBackdropBorderColor(0, 0, 0, 0)
+            addon.containerTitle:Hide()
         else
-            container:SetBackdropColor(0, 0, 0, 0.6)
-            container:SetBackdropBorderColor(1, 1, 1, 1)
-            containerTitle:Show()
+            addon.container:SetBackdropColor(0, 0, 0, 0.6)
+            addon.container:SetBackdropBorderColor(1, 1, 1, 1)
+            addon.containerTitle:Show()
         end
 
         local iconSize = SelfBuffTrackerDB.iconSize
         local spacing = SelfBuffTrackerDB.spacing
-        local totalWidth = math.max((numMissing * iconSize) + ((numMissing - 1) * spacing), 100)
-        container:SetSize(totalWidth, iconSize + 10)
+        local cols = SelfBuffTrackerDB.columns or 3
+        if cols <= 0 then cols = numMissing end
+        local numRows = math.ceil(numMissing / cols)
+        local numCols = math.min(numMissing, cols)
+
+        local totalWidth = (numCols * iconSize) + ((numCols - 1) * spacing)
+        local totalHeight = (numRows * iconSize) + ((numRows - 1) * spacing)
+
+        --local totalWidth = math.max((numMissing * iconSize) + ((numMissing - 1) * spacing), 100)
+        addon.container:SetSize(math.max(totalWidth, 100), totalHeight + 10)
 
         for i, spellName in ipairs(missingSpells) do
             if not iconPool[i] then
@@ -155,9 +132,16 @@ local function CheckBuffs()
             icon:SetSize(iconSize, iconSize)
             icon.texture:SetTexture(GetSpellTexture(spellName))
             icon:ClearAllPoints()
+
+            local col = (i - 1) % cols
+            local row = math.floor((i - 1) / cols)
+
+            local xOffset = col * (iconSize + spacing)
+            local yOffset = -row * (iconSize + spacing)
             
-            local xOffset = (i - 1) * (iconSize + spacing)
-            icon:SetPoint("LEFT", container, "LEFT", xOffset, 0)
+            icon:SetPoint("TOPLEFT", addon.container, "TOPLEFT", xOffset, yOffset)
+            --local xOffset = (i - 1) * (iconSize + spacing)
+            --icon:SetPoint("LEFT", container, "LEFT", xOffset, 0)
             icon:Show()
         end
 
@@ -184,13 +168,13 @@ local function CheckBuffs()
     else
         previouslyMissing = {}
         if not SelfBuffTrackerDB.isLocked then
-            container:Show()
-            container:SetBackdropColor(0, 0, 0, 0.6)
-            container:SetBackdropBorderColor(1, 1, 1, 1)
-            containerTitle:Show()
-            container:SetSize(120, SelfBuffTrackerDB.iconSize + 10)
+            addon.container:Show()
+            addon.container:SetBackdropColor(0, 0, 0, 0.6)
+            addon.container:SetBackdropBorderColor(1, 1, 1, 1)
+            addon.containerTitle:Show()
+            addon.container:SetSize(120, SelfBuffTrackerDB.iconSize + 10)
         else
-            container:Hide()
+            addon.container:Hide()
         end
     end
 end
@@ -218,11 +202,11 @@ frame:SetScript("OnEvent", function(self, event, unit, ...)
             end
         end
 
-        container:ClearAllPoints()
+        addon.container:ClearAllPoints()
         if SelfBuffTrackerDB.anchorPosition and #SelfBuffTrackerDB.anchorPosition == 5 then
-            container:SetPoint(unpack(SelfBuffTrackerDB.anchorPosition))
+            addon.container:SetPoint(unpack(SelfBuffTrackerDB.anchorPosition))
         else
-            container:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
+            addon.container:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
         end
         self:UnregisterEvent("ADDON_LOADED")
 

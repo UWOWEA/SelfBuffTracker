@@ -35,6 +35,7 @@ local BASE = {
     SOUND_ENABLED = "Sound alert",
     LOCKED_POSITION = "Locked position",
     ICON_SIZE = "Icon size",
+    COLUMS_AMOUNT = "Colums amount",
     ICON_SPACING = "Icon spacing",
     SOUND_LABEL = "Alert sound:",
     REMINDER_INTERVAL = "Reminder interval (s)",
