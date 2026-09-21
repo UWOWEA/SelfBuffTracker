@@ -44,12 +44,15 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
         end
 
     elseif cmd == "lock" or cmd == "unlock" then
-        SelfBuffTrackerDB.isLocked = not SelfBuffTrackerDB.isLocked
-        local status = SelfBuffTrackerDB.isLocked and L.CMD_LOCKED or L.CMD_UNLOCKED
-        print("|cff00ff00[SBT]|r " .. string.format(L.CMD_POSITION, status))
+        addon.LockContainer()
+        print("|cff00ff00[SBT]|r " .. string.format(L.CMD_POSITION, SelfBuffTrackerDB.isLocked))
         addon.CheckBuffs()
         if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
-
+    elseif cmd == "unlock" then
+        addon.ULockContainer()
+        print("|cff00ff00[SBT]|r " .. string.format(L.CMD_POSITION, SelfBuffTrackerDB.isLocked))
+        addon.CheckBuffs()
+        if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
     elseif cmd == "sound" then
         SelfBuffTrackerDB.soundEnabled = not SelfBuffTrackerDB.soundEnabled
         local status = SelfBuffTrackerDB.soundEnabled and L.CMD_SOUND_ON or L.CMD_SOUND_OFF

@@ -158,6 +158,12 @@ local function GetShapeshiftFormSpellIDs()
 end
 
 local ExcludedUtilitySpellNames = {
+    -- Basic attacks
+    ["Attack"] = true,
+    ["Auto Shot"] = true,
+    ["Shoot"] = true,
+    ["Throw"] = true,
+
     ["Rootwalking"] = true,
     ["Mobile Banking"] = true,
     ["Revive Battle Pets"] = true,
@@ -168,10 +174,32 @@ local ExcludedUtilitySpellNames = {
     ["Bull Rush"] = true,
     ["Remove Corruption"] = true,
     ["Stampeding Roar"] = true,
+
+    -- Professions
+    ["Basic Campfire"] = true,
+    ["Alchemy"] = true,
+    ["First Aid"] = true,
+    ["Cooking"] = true,
+    ["Fishing"] = true,
+    ["Skinning"] = true,
+    ["Leatherworking"] = true,
+    ["Engineering"] = true,
+    ["Enchanting"] = true,
+    ["Tailoring"] = true,
+    ["Mining"] = true,
+    ["Herbalism"] = true,
+    ["Blacksmithing"] = true,
+    ["Find Herbs"] = true,
 }
 
 local ExcludedSkillLineNames = {
     ["Battle Pets"] = true,
+    ["Professions"] = true,
+    ["Secondary Skills"] = true,
+    ["First Aid"] = true,
+    ["Cooking"] = true,
+    ["Fishing"] = true,
+    ["Archaeology"] = true,
 }
 
 local function GetSpellbookEntries(buffsOnly)

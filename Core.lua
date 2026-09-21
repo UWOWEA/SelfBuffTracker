@@ -51,6 +51,20 @@ end
 local lastSoundTime = 0
 local previouslyMissing = {}
 
+addon.LockContainer = function ()
+    SelfBuffTrackerDB.isLocked = true
+    addon.container:SetBackdropColor(0, 0, 0, 0)
+    addon.container:SetBackdropBorderColor(0, 0, 0, 0)
+    addon.containerTitle:Hide()
+end
+
+addon.UnLockContainer = function ()
+    SelfBuffTrackerDB.isLocked = false
+    addon.container:SetBackdropColor(0, 0, 0, 0.6)
+    addon.container:SetBackdropBorderColor(1, 1, 1, 1)
+    addon.containerTitle:Show()
+end
+
 local function CheckBuffs()
     if not SelfBuffTrackerDB then return end
 

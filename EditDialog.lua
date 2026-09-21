@@ -85,5 +85,6 @@ end)
 if EventRegistry and EventRegistry.RegisterCallback then
     EventRegistry:RegisterCallback("EditMode.Exit", function()
         addon.editDialog:Hide()
+        addon.LockContainer()
     end)
 end
