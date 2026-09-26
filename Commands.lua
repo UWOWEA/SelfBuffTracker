@@ -42,17 +42,6 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
         for spell, enabled in pairs(SelfBuffTrackerDB.trackedSpells) do
             if enabled then print(" - " .. spell) end
         end
-
-    elseif cmd == "lock" or cmd == "unlock" then
-        addon.LockContainer()
-        print("|cff00ff00[SBT]|r " .. string.format(L.CMD_POSITION, SelfBuffTrackerDB.isLocked))
-        addon.CheckBuffs()
-        if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
-    elseif cmd == "unlock" then
-        addon.ULockContainer()
-        print("|cff00ff00[SBT]|r " .. string.format(L.CMD_POSITION, SelfBuffTrackerDB.isLocked))
-        addon.CheckBuffs()
-        if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
     elseif cmd == "sound" then
         SelfBuffTrackerDB.soundEnabled = not SelfBuffTrackerDB.soundEnabled
         local status = SelfBuffTrackerDB.soundEnabled and L.CMD_SOUND_ON or L.CMD_SOUND_OFF
@@ -124,7 +113,6 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
         print("|cffffaa00" .. L.HELP_ADD .. "|r")
         print("|cffffaa00" .. L.HELP_REMOVE .. "|r")
         print("|cffffaa00" .. L.HELP_LIST .. "|r")
-        print("|cffffaa00" .. L.HELP_LOCK .. "|r")
         print("|cffffaa00" .. L.HELP_SOUND .. "|r")
         print("|cffffaa00" .. L.HELP_SIZE .. "|r")
         print("|cffffaa00" .. L.HELP_WARNING .. "|r")

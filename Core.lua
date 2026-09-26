@@ -19,8 +19,6 @@ addon.defaultConfig = {
 }
 local defaultConfig = addon.defaultConfig
 
-
-
 local iconPool = {}
 
 local function CreateBuffIcon()

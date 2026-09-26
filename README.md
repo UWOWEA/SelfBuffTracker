@@ -34,7 +34,6 @@ Use `/sbt` or `/buff` in chat to configure the addon:
 *   `/sbt add [Spell Link or Name]` – Adds a buff to track _(Tip: Shift-click from your Spellbook!)_
 *   `/sbt remove [Spell Link or Name]` – Removes a buff from tracking
 *   `/sbt list` – Displays all currently tracked buffs in your chat frame
-*   `/sbt lock` – Toggles frame locking (unlocks the container to move it via drag & drop)
 *   `/sbt sound` – Toggles audio warning alerts ON/OFF
 *   `/sbt size [number]` – Changes the icon size (Default: `50`)
 

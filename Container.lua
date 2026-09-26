@@ -68,7 +68,7 @@ container:SetScript("OnClick", function(self, button)
             addon.editDialog:Show()
 
             self:Show()
-            ApplyEditModeStyle(self)
+            ApplyEditModeStyle()
             if containerTitle then
                 containerTitle:Show()
             end
@@ -93,32 +93,12 @@ container:SetScript("OnDragStop", function(self)
     local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
     if isEditMode then
         ApplyEditModeStyle()
-        --[[container:SetBackdrop({
-            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true, tileSize = 16, edgeSize = 12,
-            insets = { left = 3, right = 3, top = 3, bottom = 3 }
-        })
-        container:SetBackdropColor(0, 0.4, 0.8, 0.6)
-        container:SetBackdropBorderColor(0, 0.8, 1, 1)
-        ]]--
     end
 end)
 
 if EditModeManagerFrame then
     EventRegistry:RegisterCallback("EditMode.Enter", function()
         ApplyEditModeStyle()
-        --[[container:SetBackdrop({
-            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true,
-            tileSize = 16,
-            edgeSize = 12,
-            insets = { left = 3, right = 3, top = 3, bottom = 3}
-        })
-        container:SetBackdropColor(0, 0.4, 0.8, 0.6)
-        container:SetBackdropBorderColor(0, 0.8, 1, 1)
-        ]]--
         if containerTitle then
             containerTitle:SetText(L.MOVE_HINT)
             containerTitle:Show()
