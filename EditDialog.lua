@@ -17,6 +17,7 @@ addon.editDialog:SetBackdrop({
     insets = { left = 3, right = 3, top = 3, bottom = 3 }
 })
 addon.editDialog:SetBackdropColor(0.05, 0.05, 0.05, 1)
+addon.editDialog:ApplyBackdrop()
 
 addon.editDialog:SetScript("OnDragStart", function(self)
     self:StartMoving()

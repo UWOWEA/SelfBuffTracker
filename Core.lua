@@ -27,7 +27,8 @@ local function CreateBuffIcon()
     local btn = CreateFrame("Button", nil, addon.container, "BackdropTemplate")
     btn:SetSize(SelfBuffTrackerDB.iconSize, SelfBuffTrackerDB.iconSize)
     
-    local tex = btn:CreateTexture(nil, "BACKGROUND")
+    btn:SetFrameLevel(addon.container:GetFrameLevel() + 1)
+    local tex = btn:CreateTexture(nil, "ARTWORK")
     tex:SetAllPoints(btn)
     btn.texture = tex
 
@@ -66,6 +67,14 @@ addon.UnLockContainer = function ()
 end
 
 local function CheckBuffs()
+    local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
+
+    if isEditMode then
+        addon.container:Show()
+        addon.ApplyEditModeStyle(addon.container)
+        if addon.containerTitle then addon.containerTitle:Show() end
+        return
+    end
     if not SelfBuffTrackerDB then return end
 
     if UnitIsDeadOrGhost("player") or UnitOnTaxi("player") then
@@ -134,7 +143,6 @@ local function CheckBuffs()
         local totalWidth = (numCols * iconSize) + ((numCols - 1) * spacing)
         local totalHeight = (numRows * iconSize) + ((numRows - 1) * spacing)
 
-        --local totalWidth = math.max((numMissing * iconSize) + ((numMissing - 1) * spacing), 100)
         addon.container:SetSize(math.max(totalWidth, 100), totalHeight + 10)
 
         for i, spellName in ipairs(missingSpells) do
@@ -154,8 +162,6 @@ local function CheckBuffs()
             local yOffset = -row * (iconSize + spacing)
             
             icon:SetPoint("TOPLEFT", addon.container, "TOPLEFT", xOffset, yOffset)
-            --local xOffset = (i - 1) * (iconSize + spacing)
-            --icon:SetPoint("LEFT", container, "LEFT", xOffset, 0)
             icon:Show()
         end
 
