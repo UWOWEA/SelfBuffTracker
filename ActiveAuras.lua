@@ -2,8 +2,8 @@ local addonName, addon = ...
 
 addon.auraIDCache = addon.auraIDCache or {}
 
-local function UpdateAuraCache()
-    if InCombatLockdown() then return end
+local function ScanAurasByFilter(filter)
+    if not (C_UnitAuras and C_UnitAuras.GetUnitAuras) then return end
 
     if C_UnitAuras and C_UnitAuras.GetUnitAuras then
         local ok, auras = pcall(C_UnitAuras.GetUnitAuras, "player", "HELPFUL")
@@ -24,6 +24,15 @@ local function UpdateAuraCache()
     end
 end
 
+local function UpdateAuraCache()
+    if InCombatLockdown() then return end
+    ScanAurasByFilter("HELPFUL")
+    
+    if SelfBuffTrackerDB and SelfBuffTrackerDB.isFlasksAllowed then
+        ScanAurasByFilter("HELPFUL|CANCELABLE")
+    end
+end
+
 addon.UpdateAuraCache = UpdateAuraCache
 
 local function GetAllPlayerAuras()
@@ -35,7 +44,28 @@ local function GetAllPlayerAuras()
         return auras, aurasByName, aurasBySpellID
     end
 
-    if C_UnitAuras and C_UnitAuras.GetUnitAuras then
+    local filters = { "HELPFUL" }
+    if SelfBuffTrackerDB and SelfBuffTrackerDB.isFlasksAllowed then
+        table.insert(filters, "HELPFUL|CANCELABLE")
+    end
+
+    for _, filter in ipairs(filters) do
+        if C_UnitAuras and C_UnitAuras.GetUnitAuras then
+            local ok, rawAuras = pcall(C_UnitAuras.GetUnitAuras, "player", filter)
+            if ok and type(rawAuras) == "table" then
+                for _, aura in ipairs(rawAuras) do
+                    table.insert(auras, aura)
+                    if aura.name then
+                        aurasByName[aura.name:lower()] = true
+                    end
+                    if aura.spellId then
+                        aurasBySpellID[aura.spellId] = true
+                    end
+                end
+            end
+        end
+    end
+    --[[if C_UnitAuras and C_UnitAuras.GetUnitAuras then
         local ok, rawAuras = pcall(C_UnitAuras.GetUnitAuras, "player", "HELPFUL")
         if ok and type(rawAuras) == "table" then
             for _, aura in ipairs(rawAuras) do
@@ -48,7 +78,7 @@ local function GetAllPlayerAuras()
                 end
             end
         end
-    end
+    end]]--
 
     return auras, aurasByName, aurasBySpellID
 end

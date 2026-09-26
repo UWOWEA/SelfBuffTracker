@@ -18,8 +18,11 @@ Locales.lua
 Core.lua
 Sounds.lua
 SpellPicker.lua
+FlaskPicker.lua
 Profiles.lua
 Options.lua
+OptionsFlasks.lua
+OptionsBuffs.lua
 Commands.lua
 Container.lua
 EditDialog.lua
@@ -28,3 +31,4 @@ MissingSpells.lua
 Alerts.lua
 MigrateSpell.lua
 ActiveAuras.lua
+Flasks.lua

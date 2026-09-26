@@ -4,6 +4,7 @@ local L = addon.L
 
 addon.defaultConfig = {
     trackedSpells = {},
+    trackedFlasks = {},
     iconSize = 50,
     spacing = 10,
     columns = 3,

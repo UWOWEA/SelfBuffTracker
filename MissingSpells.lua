@@ -56,6 +56,32 @@ local function IsAuraActiveOnPlayer(spellInput)
     end
 
     if not InCombatLockdown() then
+        local filters = { "HELPFUL" }
+        if SelfBuffTrackerDB and SelfBuffTrackerDB.isFlasksAllowed then
+            table.insert(filters, "HELPFUL|CANCELABLE")
+        end
+
+        for _, filter in ipairs(filters) do
+            for i = 1, 40 do
+                local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, filter)
+                if not ok or not aura then break end
+
+                if officialName and aura.name and aura.name:lower() == officialName then
+                    if aura.spellId then
+                        auraCache[officialName] = aura.spellId
+                        if spellID then
+                            auraCache[tostring(spellID)] = aura.spellId
+                        end
+                    end
+                    return true
+                end
+
+                if spellID and aura.spellId and aura.spellId == spellID then
+                    return true
+                end
+            end
+        end
+        --[[
         for i = 1, 40 do
             local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
             if not ok or not aura then break end
@@ -69,7 +95,7 @@ local function IsAuraActiveOnPlayer(spellInput)
                 end
                 return true
             end
-        end
+        end]]--
     end
     return false
 end
@@ -95,6 +121,33 @@ local function getMissingSpells()
             if not isPresent then
                 table.insert(missingSpells, spellInput)
             end
+        end
+    end
+
+    if SelfBuffTrackerDB.isFlasksAllowed and SelfBuffTrackerDB.trackedFlasks then
+        local hasAnyFlaskActive = false
+        local firstTrackedFlask = nil
+        local hasTrackedFlasks = false
+
+        for flaskInput, enabled in pairs(SelfBuffTrackerDB.trackedFlasks) do
+            if enabled then
+                hasTrackedFlasks = true
+                if not firstTrackedFlask then
+                    firstTrackedFlask = tostring(flaskInput)
+                end
+
+                if IsAuraActiveOnPlayer(flaskInput) then
+                    hasAnyFlaskActive = true
+                    break
+                end
+            end
+        end
+
+        if hasTrackedFlasks and not hasAnyFlaskActive and firstTrackedFlask then
+            if SelfBuffTrackerDB.isDebug then
+                print("[SBT Debug] Missing Flask:", firstTrackedFlask)
+            end
+            table.insert(missingSpells, firstTrackedFlask)
         end
     end
 
