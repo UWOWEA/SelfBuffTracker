@@ -440,7 +440,15 @@ local function CreatePickerFrame()
             row.icon:SetTexture(entry.iconID)
             row.text:SetText(entry.isRecommended and ("|cff00ccff" .. entry.name .. "|r") or entry.name)
             row:SetScript("OnClick", function()
-                local keyToSave = entry.spellID and tostring(entry.spellID) or entry.name
+                local idToSave = entry.spellID
+
+                if idToSave and C_Spell and C_Spell.GetOverrideSpell then
+                    local overrideID = C_Spell.GetOverrideSpell(idToSave)
+                    if overrideID and overrideID > 0 then
+                        idToSave = overrideID
+                    end
+                end
+                local keyToSave = idToSave and tostring(idToSave) or entry.name
 
                 if SelfBuffTrackerDB.isDebug then
                     print("keyToSave: ", keyToSave, ", spellID: ", entry.spellID, ", spell.name: ", entry.name)

@@ -1,12 +1,41 @@
 local addonName, addon = ...
 
+addon.auraIDCache = addon.auraIDCache or {}
+
+local function UpdateAuraCache()
+    if InCombatLockdown() then return end
+
+    if C_UnitAuras and C_UnitAuras.GetUnitAuras then
+        local ok, auras = pcall(C_UnitAuras.GetUnitAuras, "player", "HELPFUL")
+        if ok and type(auras) == "table" then
+            for _, aura in ipairs(auras) do
+                if aura.name and aura.spellId then
+                    local lowerName = aura.name:lower()
+                    addon.auraIDCache[lowerName] = aura.spellId
+                    if C_Spell and C_Spell.GetSpellInfo then
+                        local info = C_Spell.GetSpellInfo(aura.name)
+                        if info and info.spellID then
+                            addon.auraIDCache[tostring(info.spellID)] = aura.spellId
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+addon.UpdateAuraCache = UpdateAuraCache
+
 local function GetAllPlayerAuras()
     local auras = {}
     local aurasBySpellID = {}
     local aurasByName = {}
-    local inCombat = InCombatLockdown()
 
-    if not inCombat and C_UnitAuras and C_UnitAuras.GetUnitAuras then
+    if InCombatLockdown() then
+        return auras, aurasByName, aurasBySpellID
+    end
+
+    if C_UnitAuras and C_UnitAuras.GetUnitAuras then
         local ok, rawAuras = pcall(C_UnitAuras.GetUnitAuras, "player", "HELPFUL")
         if ok and type(rawAuras) == "table" then
             for _, aura in ipairs(rawAuras) do
@@ -16,24 +45,6 @@ local function GetAllPlayerAuras()
                 end
                 if aura.spellId then
                     aurasBySpellID[aura.spellId] = true
-                end
-            end
-            return auras, aurasByName, aurasBySpellID
-        end
-    end
-
-    if C_UnitAuras and C_UnitAuras.GetAuraSlots then
-        local okSlots, slots = pcall(C_UnitAuras.GetAuraSlots, "player", "HELPFUL")
-        if okSlots and type(slots) == "table" then
-            for _, slot in ipairs(slots) do
-                local okAura, aura = pcall(C_UnitAuras.GetAuraDataBySlot, "player", slot)
-                if okAura and aura then
-                    table.insert(auras, aura)
-                    if aura.name then
-                        local okName, nameLower = pcall(string.lower, aura.name)
-                        if okName and nameLower then aurasByName[nameLower] = true end
-                    end
-                    if aura.spellId then aurasBySpellID[aura.spellId] = true end
                 end
             end
         end

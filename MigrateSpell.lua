@@ -8,25 +8,31 @@ local function MigrateTrackedSpellsToIDs()
 
     for spellInput, enabled in pairs(SelfBuffTrackerDB.trackedSpells) do
         local spellID = tonumber(spellInput)
+        local targetID = spellID
 
-        if spellID then
-            updatedSpells[tostring(spellID)] = enabled
-        else
-            local officialID = nil
-
-            if C_Spell and C_Spell.GetSpellInfo then
-                local info = C_Spell.GetSpellInfo(spellInput)
-                if info and info.spellID then
-                    officialID = info.spellID
-                end
+        if not targetID and C_Spell and C_Spell.GetSpellInfo then
+            local info = C_Spell.GetSpellInfo(spellInput)
+            if info and info.spellID then
+                targetID = info.spellID
             end
+        end
 
-            if officialID then
-                updatedSpells[tostring(officialID)] = enabled
+        if targetID and C_Spell and C_Spell.GetOverrideSpell then
+            local overrideID = C_Spell.GetOverrideSpell(targetID)
+            if overrideID and overrideID > 0 then
+                targetID = overrideID
+            end
+        end
+
+        if targetID then
+            local keyStr = tostring(targetID)
+            updatedSpells[keyStr] = enabled
+
+            if keyStr ~= tostring(spellInput) then
                 migratedCount = migratedCount + 1
-            else
-                updatedSpells[spellInput] = enabled
             end
+        else
+            updatedSpells[spellInput] = enabled
         end
     end
 
@@ -43,7 +49,15 @@ local function GetSpellDisplayNameAndIcon(spellInput)
     local spellID = tonumber(spellInput)
 
     if spellID and C_Spell and C_Spell.GetSpellInfo then
-        local info = C_Spell.GetSpellInfo(spellID)
+        local targetID = spellID
+        if C_Spell.GetOverrideSpell then
+            local overrideID = C_Spell.GetOverrideSpell(spellID)
+            if overrideID and overrideID > 0 then
+                targetID = overrideID
+            end
+        end
+
+        local info = C_Spell.GetSpellInfo(targetID) or C_Spell.GetSpellInfo(spellID)
         if info then
             return info.name or ("Spell " .. spellInput), info.iconID
         end

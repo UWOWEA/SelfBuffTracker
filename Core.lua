@@ -3,8 +3,7 @@ local frame = CreateFrame("Frame", "SelfBuffTrackerFrame", UIParent)
 local L = addon.L
 
 addon.defaultConfig = {
-    trackedSpells = {
-    },
+    trackedSpells = {},
     iconSize = 50,
     spacing = 10,
     columns = 3,
@@ -20,57 +19,22 @@ addon.defaultConfig = {
 }
 local defaultConfig = addon.defaultConfig
 
+addon.activeBuffTimers = addon.activeBuffTimers or {}
+
 local events = {
-    {
-    name = "ADDON_LOADED",
-    ignoreTime = false,
-    needPlayer = false,
- },
- {
-    name = "PLAYER_ENTERING_WORLD",
-    ignoreTime = false,
-    needPlayer = false,
- },
- {
-    name = "UNIT_AURA",
-    ignoreTime = false,
-    needPlayer = true,
- },
- {
-    name = "PLAYER_REGEN_DISABLED",
-    ignoreTime = false,
-    needPlayer = false,
- },
- {
-    name = "PLAYER_ALIVE",
-    ignoreTime = false,
-    needPlayer = false,
- },
- {
-    name = "PLAYER_UNGHOST",
-    ignoreTime = false,
-    needPlayer = false,
- },
- {
-    name = "PLAYER_ENTER_COMBAT",
-    ignoreTime = true,
-    needPlayer = false,
- },
- {
-    name = "PLAYER_LEAVE_COMBAT",
-    ignoreTime = false,
-    needPlayer = false,
- },
- {
-    name = "PLAYER_CONTROL_GAINED",
-    ignoreTime = true,
-    needPlayer = false,
- },
- {
-    name = "PLAYER_LOGOUT",
-    ignoreTime = false,
-    needPlayer = false,
- }
+ { name = "ADDON_LOADED", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_ENTERING_WORLD", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "UNIT_AURA", ignoreTime = false, needPlayer = true, muteSound = false, },
+ { name = "PLAYER_REGEN_DISABLED", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_REGEN_ENABLED", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_ALIVE", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_UNGHOST", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_ENTER_COMBAT", ignoreTime = true, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_LEAVE_COMBAT", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_IN_COMBAT_CHANGED", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_CONTROL_GAINED", ignoreTime = true, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_LOGOUT", ignoreTime = false, needPlayer = false, muteSound = true, },
+ { name = "UNIT_SPELLCAST_SUCCEEDED", ignoreTime = true, needPlayer = true, muteSound = true, },
 }
 
 for _, event in ipairs(events) do
@@ -121,7 +85,10 @@ addon.UnLockContainer = function ()
     addon.containerTitle:Show()
 end
 
-local function CheckBuffs(isTimeIgnored)
+local function CheckBuffs(isTimeIgnored, muteSound)
+    if not muteSound then
+        muteSound = false
+    end
 
     if addon.isEditMode() then
         addon.ApplyEditModeStyle()
@@ -185,11 +152,16 @@ local function CheckBuffs(isTimeIgnored)
             icon:Show()
         end
 
-        addon.PlaySoundAlert(missingSpells, previouslyMissing, isTimeIgnored)
-
         previouslyMissing = {}
+        local missingCount = 0
         for _, spellName in ipairs(missingSpells) do
             previouslyMissing[spellName] = true
+            missingCount = missingCount + 1
+        end
+
+        missingCount = missingCount + numMissing
+        if not muteSound and (numMissing > 0 or missingCount > 0) then
+            addon.PlaySoundAlert(missingSpells, previouslyMissing, isTimeIgnored)
         end
     else
         previouslyMissing = {}
@@ -207,20 +179,7 @@ local function CheckBuffs(isTimeIgnored)
 end
 addon.CheckBuffs = CheckBuffs
 
-local timeSinceLastCheck = 0
-frame:SetScript("OnUpdate", function(self, elapsed)
-    timeSinceLastCheck = timeSinceLastCheck + elapsed
-
-    if timeSinceLastCheck >= SelfBuffTrackerDB.soundReminderInterval then
-        timeSinceLastCheck = 0
-
-        if addon.CheckBuffs then
-            addon.CheckBuffs(false)
-        end
-    end
-end)
-
-frame:SetScript("OnEvent", function(self, event, unit, ...)
+frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
     if event == "ADDON_LOADED" and unit == addonName then
         if not SelfBuffTrackerDB then
             SelfBuffTrackerDB = CopyTable(defaultConfig)
@@ -258,10 +217,40 @@ frame:SetScript("OnEvent", function(self, event, unit, ...)
             addon.SaveCharacterSnapshot()
         end
     else
+        if event == "UNIT_SPELLCAST_SUCCEEDED" and unit == "player" then
+            if spellID then
+                local expTime = GetTime() + 30
+                addon.activeBuffTimers[tostring(spellID)] = expTime
+
+                if C_Spell and C_Spell.GetSpellInfo then
+                    local info = C_Spell.GetSpellInfo(spellID)
+                    if info and info.name then
+                        addon.activeBuffTimers[info.name:lower()] = expTime
+                    end
+                end
+            end
+        end
+        if event == "PLAYER_REGEN_DISABLED" then
+            if addon.UpdateAuraCache then
+                addon.UpdateAuraCache()
+            end
+        end
+        if event == "PLAYER_REGEN_ENABLED" then
+            local now = GetTime()
+            for k, expTime in pairs(addon.activeBuffTimers) do
+                if now > expTime then
+                    addon.activeBuffTimers[k] = nil
+                end
+            end
+            addon.UpdateAuraCache()
+        end
+        if event == "PLAYER_ENTERING_WORLD" or event == "UNIT_AURA" then
+            addon.UpdateAuraCache()
+        end
         for _, checkEvent in ipairs(events) do
             if event == checkEvent.name then
                 if not checkEvent.needPlayer or (checkEvent.needPlayer and unit == "player") then
-                    CheckBuffs(checkEvent.ignoreTime)
+                    CheckBuffs(checkEvent.ignoreTime, checkEvent.muteSound)
                 end
             end
         end
