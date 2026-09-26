@@ -1,5 +1,12 @@
 local addonName, addon = ...
 local L = addon.L
+
+local function isEditMode()
+    return EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
+end
+
+addon.isEditMode = isEditMode
+
 addon.editDialog = CreateFrame("Frame", "SelfBuffTrackerEditDialog", UIParent, "BackdropTemplate")
 addon.editDialog:SetSize(300, 250)
 addon.editDialog:SetFrameStrata("FULLSCREEN_DIALOG")

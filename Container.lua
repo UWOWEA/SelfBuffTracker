@@ -14,6 +14,7 @@ local containerTitle = container:CreateFontString(nil, "OVERLAY", "GameFontNorma
 addon.containerTitle = containerTitle
 containerTitle:SetPoint("BOTTOM", container, "TOP", 0, 4)
 containerTitle:SetText(addon.L.MOVE_HINT)
+containerTitle:Hide()
 addon.ApplyFont(containerTitle, "normalSmall")
 
 local editOverlay = CreateFrame("Frame", nil, container, "BackdropTemplate")
@@ -24,6 +25,7 @@ editOverlay:Hide()
 addon.editOverlay = editOverlay
 
 local function ApplyEditModeStyle()
+    addon.container:Show()
     editOverlay:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Buttons\\WHITE8x8",
@@ -36,19 +38,20 @@ local function ApplyEditModeStyle()
     editOverlay:SetBackdropColor(0.12, 0.35, 0.45, 0.6)
     editOverlay:SetBackdropBorderColor(0.2, 0.8, 1.0, 0.9)
     editOverlay:Show()
+    if addon.containerTitle then addon.containerTitle:Show() end
 end
 
 addon.ApplyEditModeStyle = ApplyEditModeStyle
 
 local function ClearEditModeStyle()
     editOverlay:Hide()
+    containerTitle:Hide()
 end
 
 addon.ClearEditModeStyle = ClearEditModeStyle
 
 container:SetScript("OnClick", function(self, button)
-    local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
-    if isEditMode then
+    if addon.isEditMode() then
         if addon.editDialog:IsShown() then
             addon.editDialog:Hide()
         else
@@ -77,8 +80,7 @@ container:SetScript("OnClick", function(self, button)
 end)
 
 container:SetScript("OnDragStart", function(self)
-    local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
-    if isEditMode or not SelfBuffTrackerDB.isLocked then
+    if addon.isEditMode() then
         if addon.editDialog then
             addon.editDialog:Hide()
         end
@@ -90,8 +92,7 @@ container:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     local point, _, relPoint, x, y = self:GetPoint()
     SelfBuffTrackerDB.anchorPosition = { point, nil, relPoint, x, y }
-    local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
-    if isEditMode then
+    if addon.isEditMode() then
         ApplyEditModeStyle()
     end
 end)

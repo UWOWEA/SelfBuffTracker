@@ -14,7 +14,7 @@ addon.defaultConfig = {
     soundReminderInterval = 10,
     locale = "auto",
     anchorPosition = { "CENTER", nil, "CENTER", 0, 150 },
-    isLocked = false,
+    isLocked = true,
     isFlasksAllowed = false,
 }
 local defaultConfig = addon.defaultConfig
@@ -65,18 +65,15 @@ addon.UnLockContainer = function ()
 end
 
 local function CheckBuffs()
-    local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
-
-    if isEditMode then
-        addon.container:Show()
-        addon.ApplyEditModeStyle(addon.container)
-        if addon.containerTitle then addon.containerTitle:Show() end
+    if addon.isEditMode() then
+        addon.ApplyEditModeStyle()
         return
     end
     if not SelfBuffTrackerDB then return end
 
     if UnitIsDeadOrGhost("player") or UnitOnTaxi("player") then
         addon.container:Hide()
+        addon.containerTitle:Hide()
         return
     end
 
@@ -120,16 +117,6 @@ local function CheckBuffs()
     local numMissing = #missingSpells
     if numMissing > 0 then
         addon.container:Show()
-
-        if SelfBuffTrackerDB.isLocked then
-            addon.container:SetBackdropColor(0, 0, 0, 0)
-            addon.container:SetBackdropBorderColor(0, 0, 0, 0)
-            addon.containerTitle:Hide()
-        else
-            addon.container:SetBackdropColor(0, 0, 0, 0.6)
-            addon.container:SetBackdropBorderColor(1, 1, 1, 1)
-            addon.containerTitle:Show()
-        end
 
         local iconSize = SelfBuffTrackerDB.iconSize
         local spacing = SelfBuffTrackerDB.spacing
@@ -193,6 +180,7 @@ local function CheckBuffs()
             addon.container:SetSize(120, SelfBuffTrackerDB.iconSize + 10)
         else
             addon.container:Hide()
+            addon.containerTitle:Hide()
         end
     end
 end
