@@ -18,7 +18,7 @@ local function getMissingSpells()
             end
 
             if not isPresent and C_Spell and C_Spell.GetSpellInfo then
-                local info = C_Spell.GetSpellInfo(spellInput)
+                local info = C_Spell.GetSpellInfo(spellID or spellInput)
                 if info then
                     officialName = info.name
                     if info.spellID and C_UnitAuras.GetPlayerAuraBySpellID(info.spellID) then
@@ -28,10 +28,25 @@ local function getMissingSpells()
             end
 
             if not isPresent and C_UnitAuras.GetAuraDataBySpellName then
-                if officialName and C_UnitAuras.GetAuraDataBySpellName("player", officialName, "HELPFUL") then
+                local searchName = officialName or spellInput
+                local ok, aura = pcall(C_UnitAuras.GetAuraDataBySpellName, "player", searchName, "HELPFUL")
+                if ok and aura then
                     isPresent = true
-                elseif C_UnitAuras.GetAuraDataBySpellName("player", spellInput, "HELPFUL") then
-                    isPresent = true
+                end
+            end
+
+            if not isPresent and C_Spell and C_Spell.GetOverrideSpell then
+                local searchID = spellID
+                if not searchID and C_Spell.GetSpellInfo then
+                    local info = C_Spell.GetSpellInfo(spellInput)
+                    searchID = info and info.spellID
+                end
+
+                if searchID then
+                    local overrideID = C_Spell.GetOverrideSpell(searchID)
+                    if overrideID and overrideID ~= searchID and C_UnitAuras.GetPlayerAuraBySpellID(overrideID) then
+                        isPresent = true
+                    end
                 end
             end
 
