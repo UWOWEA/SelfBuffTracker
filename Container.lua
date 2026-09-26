@@ -110,7 +110,7 @@ if EditModeManagerFrame then
     EventRegistry:RegisterCallback("EditMode.Exit", function() 
         ClearEditModeStyle()
         if addon.CheckBuffs then
-            addon.CheckBuffs()
+            addon.CheckBuffs(false)
         end
     end)
 end

@@ -149,7 +149,7 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
             row.text:SetText(spell)
             row.removeButton:SetScript("OnClick", function()
                 SelfBuffTrackerDB.trackedSpells[spell] = nil
-                addon.CheckBuffs()
+                addon.CheckBuffs(false)
                 RefreshSpellList()
             end)
             row:Show()
@@ -161,7 +161,7 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
         if text ~= "" then
             SelfBuffTrackerDB.trackedSpells[text] = true
             spellEditBox:SetText("")
-            addon.CheckBuffs()
+            addon.CheckBuffs(false)
             RefreshSpellList()
         end
     end)
@@ -239,24 +239,24 @@ local function BuildNativeSettingsPanel()
         function() return SelfBuffTrackerDB.isLocked end,
         function(value)
             SelfBuffTrackerDB.isLocked = value
-            addon.CheckBuffs()
+            addon.CheckBuffs(false)
         end)
 
     AddSlider(category, "SBT_IconSize", L.ICON_SIZE, 20, 100, 1, 50,
         function() return SelfBuffTrackerDB.iconSize end,
         function(value)
             SelfBuffTrackerDB.iconSize = value
-            addon.CheckBuffs()
+            addon.CheckBuffs(false)
         end)
 
     AddSlider(category, "SBT_Spacing", L.ICON_SPACING, 0, 30, 1, 10,
         function() return SelfBuffTrackerDB.spacing end,
         function(value)
             SelfBuffTrackerDB.spacing = value
-            addon.CheckBuffs()
+            addon.CheckBuffs(false)
         end)
 
-    AddSlider(category, "SBT_ReminderInterval", L.REMINDER_INTERVAL, 3, 180, 1, 10,
+    AddSlider(category, "SBT_ReminderInterval", L.REMINDER_INTERVAL, 0.1, 180, 0.1, 0.5,
         function() return SelfBuffTrackerDB.soundReminderInterval end,
         function(value) SelfBuffTrackerDB.soundReminderInterval = value end)
 
@@ -274,6 +274,11 @@ local function BuildNativeSettingsPanel()
             end
             return list
         end)
+    
+
+    AddCheckbox(category, "SBT_Debug", L.DEBUG_ENABLED, true,
+        function() return SelfBuffTrackerDB.isDebug end,
+        function(value) SelfBuffTrackerDB.isDebug = value end)
 
     Settings.RegisterAddOnCategory(category)
 

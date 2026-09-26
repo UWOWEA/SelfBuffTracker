@@ -16,8 +16,66 @@ addon.defaultConfig = {
     anchorPosition = { "CENTER", nil, "CENTER", 0, 150 },
     isLocked = true,
     isFlasksAllowed = false,
+    isDebug = false,
 }
 local defaultConfig = addon.defaultConfig
+
+local events = {
+    {
+    name = "ADDON_LOADED",
+    ignoreTime = false,
+    needPlayer = false,
+ },
+ {
+    name = "PLAYER_ENTERING_WORLD",
+    ignoreTime = false,
+    needPlayer = false,
+ },
+ {
+    name = "UNIT_AURA",
+    ignoreTime = false,
+    needPlayer = true,
+ },
+ {
+    name = "PLAYER_REGEN_DISABLED",
+    ignoreTime = false,
+    needPlayer = false,
+ },
+ {
+    name = "PLAYER_ALIVE",
+    ignoreTime = false,
+    needPlayer = false,
+ },
+ {
+    name = "PLAYER_UNGHOST",
+    ignoreTime = false,
+    needPlayer = false,
+ },
+ {
+    name = "PLAYER_ENTER_COMBAT",
+    ignoreTime = true,
+    needPlayer = false,
+ },
+ {
+    name = "PLAYER_LEAVE_COMBAT",
+    ignoreTime = false,
+    needPlayer = false,
+ },
+ {
+    name = "PLAYER_CONTROL_GAINED",
+    ignoreTime = true,
+    needPlayer = false,
+ },
+ {
+    name = "PLAYER_LOGOUT",
+    ignoreTime = false,
+    needPlayer = false,
+ }
+}
+
+for _, event in ipairs(events) do
+    frame:RegisterEvent(event.name)
+end
 
 local iconPool = {}
 
@@ -63,7 +121,7 @@ addon.UnLockContainer = function ()
     addon.containerTitle:Show()
 end
 
-local function CheckBuffs()
+local function CheckBuffs(isTimeIgnored)
     if addon.isEditMode() then
         addon.ApplyEditModeStyle()
         return
@@ -78,11 +136,19 @@ local function CheckBuffs()
 
     local missingSpells = addon.getMissingSpells()
 
+    if SelfBuffTrackerDB.isDebug then
+        print("[Debug] missing spells amount:", missingSpells)
+    end
+
     for _, icon in ipairs(iconPool) do
         icon:Hide()
     end
 
     local numMissing = #missingSpells
+
+    if SelfBuffTrackerDB.isDebug then
+        print("[Debug] missing spells amount:", numMissing)
+    end
     if numMissing > 0 then
         addon.container:Show()
 
@@ -118,7 +184,7 @@ local function CheckBuffs()
             icon:Show()
         end
 
-        addon.PlaySoundAlert(missingSpells, previouslyMissing)
+        addon.PlaySoundAlert(missingSpells, previouslyMissing, isTimeIgnored)
 
         previouslyMissing = {}
         for _, spellName in ipairs(missingSpells) do
@@ -140,17 +206,21 @@ local function CheckBuffs()
 end
 addon.CheckBuffs = CheckBuffs
 
-frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("UNIT_AURA")
-frame:RegisterEvent("PLAYER_REGEN_DISABLED")
-frame:RegisterEvent("PLAYER_ALIVE")
-frame:RegisterEvent("PLAYER_UNGHOST")
-frame:RegisterEvent("PLAYER_ENTER_COMBAT")
-frame:RegisterEvent("PLAYER_CONTROL_GAINED")
-frame:RegisterEvent("PLAYER_LOGOUT")
+local timeSinceLastCheck = 0
+frame:SetScript("OnUpdate", function(self, elapsed)
+    timeSinceLastCheck = timeSinceLastCheck + elapsed
+
+    if timeSinceLastCheck >= SelfBuffTrackerDB.soundReminderInterval then
+        timeSinceLastCheck = 0
+
+        if addon.CheckBuffs then
+            addon.CheckBuffs(false)
+        end
+    end
+end)
 
 frame:SetScript("OnEvent", function(self, event, unit, ...)
+    print("Event: ", event)
     if event == "ADDON_LOADED" and unit == addonName then
         if not SelfBuffTrackerDB then
             SelfBuffTrackerDB = CopyTable(defaultConfig)
@@ -185,9 +255,13 @@ frame:SetScript("OnEvent", function(self, event, unit, ...)
         if addon.SaveCharacterSnapshot then
             addon.SaveCharacterSnapshot()
         end
-    elseif event == "PLAYER_ENTERING_WORLD" or (event == "UNIT_AURA" and unit == "player") or event == "PLAYER_REGEN_DISABLED"
-        or event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" or event == "PLAYER_ENTER_COMBAT"
-        or event == "PLAYER_CONTROL_GAINED" then
-        CheckBuffs()
+    else
+        for _, checkEvent in ipairs(events) do
+            if event == checkEvent.name then
+                if not checkEvent.needPlayer or (checkEvent.needPlayer and unit == "player") then
+                    CheckBuffs(checkEvent.ignoreTime)
+                end
+            end
+        end
     end
 end)

@@ -2,7 +2,7 @@ local addonName, addon = ...
 
 local lastSoundTime = 0
 
-local function PlaySoundAlert(missingSpells, previouslyMissing)
+local function PlaySoundAlert(missingSpells, previouslyMissing, skipInterval)
     if SelfBuffTrackerDB.soundEnabled then
         local now = GetTime()
         local hasNewlyMissing = false
@@ -13,7 +13,7 @@ local function PlaySoundAlert(missingSpells, previouslyMissing)
             end
         end
 
-        if hasNewlyMissing or (now - lastSoundTime) > SelfBuffTrackerDB.soundReminderInterval then
+        if hasNewlyMissing or (now - lastSoundTime) > SelfBuffTrackerDB.soundReminderInterval or skipInterval then
             addon.PlayWarningSound()
             lastSoundTime = now
         end

@@ -50,7 +50,7 @@ function addon.CopyProfileFrom(key)
         end
     end
 
-    addon.CheckBuffs()
+    addon.CheckBuffs(false)
     if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
     return true
 end

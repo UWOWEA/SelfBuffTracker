@@ -3,11 +3,15 @@ local addonName, addon = ...
 local function getMissingSpells()
     local missingSpells = {}
 
+    if not SelfBuffTrackerDB or not SelfBuffTrackerDB.trackedSpells then
+        return missingSpells
+    end
+
     for spellInput, enabled in pairs(SelfBuffTrackerDB.trackedSpells) do
         if enabled then
             local isPresent = false
-            local targetName = spellInput:lower()
             local spellID = tonumber(spellInput)
+            local officialName = nil
 
             if spellID and C_UnitAuras.GetPlayerAuraBySpellID(spellID) then
                 isPresent = true
@@ -15,17 +19,24 @@ local function getMissingSpells()
 
             if not isPresent and C_Spell and C_Spell.GetSpellInfo then
                 local info = C_Spell.GetSpellInfo(spellInput)
-                if info and info.spellID and C_UnitAuras.GetPlayerAuraBySpellID(info.spellID) then
-                    isPresent = true
+                if info then
+                    officialName = info.name
+                    if info.spellID and C_UnitAuras.GetPlayerAuraBySpellID(info.spellID) then
+                        isPresent = true
+                    end
                 end
             end
 
             if not isPresent and C_UnitAuras.GetAuraDataBySpellName then
-                local aura = C_UnitAuras.GetAuraDataBySpellName("player", spellInput, "HELPFUL")
-                    or C_UnitAuras.GetAuraDataBySpellName("player", targetName, "HELPFUL")
-                if aura then
+                if officialName and C_UnitAuras.GetAuraDataBySpellName("player", officialName, "HELPFUL") then
+                    isPresent = true
+                elseif C_UnitAuras.GetAuraDataBySpellName("player", spellInput, "HELPFUL") then
                     isPresent = true
                 end
+            end
+
+            if SelfBuffTrackerDB.isDebug then
+                print("[Debug] Spell:", spellInput, "| Official:", officialName, "| isPresent:", isPresent)
             end
 
             if not isPresent then

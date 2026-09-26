@@ -230,6 +230,7 @@ local function GetSpellbookEntries(buffsOnly)
                                     iconID = itemInfo.iconID,
                                     category = skillLineInfo.name,
                                     isBuff = isBuff,
+                                    id = spellID,
                                 })
                             end
                         end
@@ -294,6 +295,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         iconID = iconID,
                                         category = name,
                                         isBuff = isBuff,
+                                        id = spellID,
                                         isRecommended = true,
                                     })
                                 elseif isRelevant and (not buffsOnly or isBuff) then
@@ -302,6 +304,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         name = spellName,
                                         iconID = iconID,
                                         category = name,
+                                        id = spellID,
                                         isBuff = isBuff,
                                     })
                                 end
@@ -437,10 +440,15 @@ local function CreatePickerFrame()
             row.icon:SetTexture(entry.iconID)
             row.text:SetText(entry.isRecommended and ("|cff00ccff" .. entry.name .. "|r") or entry.name)
             row:SetScript("OnClick", function()
-                SelfBuffTrackerDB.trackedSpells[entry.name] = true
-                addon.CheckBuffs()
+                local keyToSave = entry.spellID and tostring(entry.spellID) or entry.name
+                SelfBuffTrackerDB.trackedSpells[keyToSave] = true
+
+                if addon.CheckBuffs then
+                    addon.CheckBuffs(false)
+                end
+                
                 if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
-                print("|cff00ff00[SBT]|r " .. string.format(addon.L.PICKER_ADDED, entry.name))
+                print("|cff00ff00[SBT]|r " .. string.format(addon.L.PICKER_ADDED, entry.name .. " (ID: " .. (entry.spellID or "Neznámé") .. ")"))
             end)
             row:Show()
         end

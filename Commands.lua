@@ -24,7 +24,7 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
 
         SelfBuffTrackerDB.trackedSpells[spell] = true
         print("|cff00ff00[SBT]|r " .. string.format(L.CMD_ADDED, spell))
-        addon.CheckBuffs()
+        addon.CheckBuffs(true)
         if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
 
     elseif cmd == "remove" and args[2] then
@@ -34,7 +34,7 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
 
         SelfBuffTrackerDB.trackedSpells[spell] = nil
         print("|cff00ff00[SBT]|r " .. string.format(L.CMD_REMOVED, spell))
-        addon.CheckBuffs()
+        addon.CheckBuffs(true)
         if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
 
     elseif cmd == "list" then
@@ -54,7 +54,7 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
         else
             SelfBuffTrackerDB.iconSize = tonumber(args[2])
             print("|cff00ff00[SBT]|r " .. string.format(L.CMD_SIZE_SET, args[2]))
-            addon.CheckBuffs()
+            addon.CheckBuffs(false)
             if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
         end
 
@@ -107,7 +107,7 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
     elseif cmd == "cols" and tonumber(args[2]) then
         SelfBuffTrackerDB.columns = tonumber(args[2])
         print("|cff00ff00[SBT]|r Počet sloupců nastaven na: " .. args[2])
-        addon.CheckBuffs()
+        addon.CheckBuffs(false)
     else
         print("|cff00ff00" .. L.HELP_HEADER .. "|r")
         print("|cffffaa00" .. L.HELP_ADD .. "|r")

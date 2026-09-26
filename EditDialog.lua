@@ -64,7 +64,7 @@ addon.editDialogSizeSlider:SetScript("OnValueChanged", function(self, value)
     SelfBuffTrackerDB.iconSize = value
     addon.editDialogSizeText:SetText(L.ICON_SIZE)
     addon.editDialogSizeValueText:SetText(tostring(value))
-    if addon.CheckBuffs then addon.CheckBuffs() end
+    if addon.CheckBuffs then addon.CheckBuffs(false) end
 end)
 
 addon.editDialogColSlider = CreateFrame("Slider", "SBTColSlider", addon.editDialog, "OptionsSliderTemplate")
@@ -87,7 +87,7 @@ addon.editDialogColSlider:SetScript("OnValueChanged", function(self, value)
     SelfBuffTrackerDB.columns = value
     addon.editDialogColText:SetText(L.COLUMS_AMOUNT)
     addon.editDialogColValueText:SetText(tostring(value))
-    if addon.CheckBuffs then addon.CheckBuffs() end
+    if addon.CheckBuffs then addon.CheckBuffs(false) end
 end)
 
 if EventRegistry and EventRegistry.RegisterCallback then

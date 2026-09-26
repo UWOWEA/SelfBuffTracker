@@ -33,6 +33,7 @@ local BASE = {
     LANGUAGE_LABEL = "Language:",
     LANGUAGE_AUTO = "Automatic (client language)",
     SOUND_ENABLED = "Sound alert",
+    DEBUG_ENABLED = "Enable debug",
     LOCKED_POSITION = "Locked position",
     ICON_SIZE = "Icon size",
     COLUMS_AMOUNT = "Colums amount",
