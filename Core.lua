@@ -122,12 +122,6 @@ addon.UnLockContainer = function ()
 end
 
 local function CheckBuffs(isTimeIgnored)
-    --local activeAurasBySpellID, activeAurasByName = addon.GetAllPlayerAuras()
-
-    --print(#activeAurasBySpellID, #activeAurasByName)
-    --[[for spellId, _ in ipairs(activeAurasByName) do
-        print("ID:", spellId)
-    end]]--
 
     if addon.isEditMode() then
         addon.ApplyEditModeStyle()
@@ -142,7 +136,6 @@ local function CheckBuffs(isTimeIgnored)
     end
 
     local missingSpells = addon.getMissingSpells()
-    print("[Debug] missing spells amount:", #missingSpells)
 
     if SelfBuffTrackerDB.isDebug then
         print("[Debug] missing spells amount:", missingSpells)
