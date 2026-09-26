@@ -7,45 +7,40 @@ local function getMissingSpells()
         return missingSpells
     end
 
+    local _, aurasByName, aurasBySpellID = addon.GetAllPlayerAuras()
+
     for spellInput, enabled in pairs(SelfBuffTrackerDB.trackedSpells) do
         if enabled then
             local isPresent = false
             local spellID = tonumber(spellInput)
             local officialName = nil
 
-            if spellID and C_UnitAuras.GetPlayerAuraBySpellID(spellID) then
-                isPresent = true
-            end
-
-            if not isPresent and C_Spell and C_Spell.GetSpellInfo then
+            if C_Spell and C_Spell.GetSpellInfo then
                 local info = C_Spell.GetSpellInfo(spellID or spellInput)
                 if info then
                     officialName = info.name
-                    if info.spellID and C_UnitAuras.GetPlayerAuraBySpellID(info.spellID) then
-                        isPresent = true
-                    end
+                    spellID = spellID or info.spellID
                 end
             end
 
-            if not isPresent and C_UnitAuras.GetAuraDataBySpellName then
-                local searchName = officialName or spellInput
-                local ok, aura = pcall(C_UnitAuras.GetAuraDataBySpellName, "player", searchName, "HELPFUL")
+            if spellID and aurasBySpellID[spellID] then
+                isPresent = true
+            elseif officialName and aurasByName[officialName:lower()] then
+                isPresent = true
+            end
+
+            if not isPresent and spellID then
+                local ok, aura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, spellID)
                 if ok and aura then
                     isPresent = true
                 end
-            end
-
-            if not isPresent and C_Spell and C_Spell.GetOverrideSpell then
-                local searchID = spellID
-                if not searchID and C_Spell.GetSpellInfo then
-                    local info = C_Spell.GetSpellInfo(spellInput)
-                    searchID = info and info.spellID
-                end
-
-                if searchID then
-                    local overrideID = C_Spell.GetOverrideSpell(searchID)
-                    if overrideID and overrideID ~= searchID and C_UnitAuras.GetPlayerAuraBySpellID(overrideID) then
-                        isPresent = true
+                if not isPresent and C_Spell and C_Spell.GetOverrideSpell then
+                    local overrideID = C_Spell.GetOverrideSpell(spellID)
+                    if overrideID and overrideID ~= spellID then
+                        local okOverride, overrideAura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, overrideID)
+                        if okOverride and overrideAura then
+                            isPresent = true
+                        end
                     end
                 end
             end

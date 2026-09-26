@@ -27,3 +27,4 @@ GameInfo.lua
 MissingSpells.lua
 Alerts.lua
 MigrateSpell.lua
+ActiveAuras.lua

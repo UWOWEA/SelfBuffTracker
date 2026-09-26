@@ -230,7 +230,7 @@ local function GetSpellbookEntries(buffsOnly)
                                     iconID = itemInfo.iconID,
                                     category = skillLineInfo.name,
                                     isBuff = isBuff,
-                                    id = spellID,
+                                    spellID = spellID,
                                 })
                             end
                         end
@@ -295,7 +295,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         iconID = iconID,
                                         category = name,
                                         isBuff = isBuff,
-                                        id = spellID,
+                                        spellID = spellID,
                                         isRecommended = true,
                                     })
                                 elseif isRelevant and (not buffsOnly or isBuff) then
@@ -304,7 +304,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         name = spellName,
                                         iconID = iconID,
                                         category = name,
-                                        id = spellID,
+                                        spellID = spellID,
                                         isBuff = isBuff,
                                     })
                                 end
@@ -441,6 +441,10 @@ local function CreatePickerFrame()
             row.text:SetText(entry.isRecommended and ("|cff00ccff" .. entry.name .. "|r") or entry.name)
             row:SetScript("OnClick", function()
                 local keyToSave = entry.spellID and tostring(entry.spellID) or entry.name
+
+                if SelfBuffTrackerDB.isDebug then
+                    print("keyToSave: ", keyToSave, ", spellID: ", entry.spellID, ", spell.name: ", entry.name)
+                end
                 SelfBuffTrackerDB.trackedSpells[keyToSave] = true
                 
                 addon.MigrateTrackedSpellsToIDs()
