@@ -87,14 +87,6 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
 
     local ROW_HEIGHT = 30
 
-    local function GetSpellIcon(spellName)
-        local info = C_Spell.GetSpellInfo(spellName)
-        if info and info.iconID then
-            return info.iconID
-        end
-        return "Interface\\Icons\\INV_Misc_QuestionMark"
-    end
-
     local function RefreshSpellList()
         for _, row in ipairs(spellRows) do row:Hide() end
 
@@ -107,6 +99,7 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
         scrollChild:SetSize(scrollFrame:GetWidth(), math.max(#spells * ROW_HEIGHT, 1))
 
         for i, spell in ipairs(spells) do
+            local displayName, iconTexture = addon.GetSpellDisplayNameAndIcon(spell)
             local row = spellRows[i]
             if not row then
                 row = CreateFrame("Frame", nil, scrollChild, "BackdropTemplate")
@@ -145,10 +138,11 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
             row:SetWidth(scrollFrame:GetWidth())
-            row.icon:SetTexture(GetSpellIcon(spell))
-            row.text:SetText(spell)
+            row.icon:SetTexture(iconTexture)
+            row.text:SetText(displayName)
             row.removeButton:SetScript("OnClick", function()
                 SelfBuffTrackerDB.trackedSpells[spell] = nil
+                addon.MigrateTrackedSpellsToIDs()
                 addon.CheckBuffs(false)
                 RefreshSpellList()
             end)
@@ -161,6 +155,7 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
         if text ~= "" then
             SelfBuffTrackerDB.trackedSpells[text] = true
             spellEditBox:SetText("")
+            addon.MigrateTrackedSpellsToIDs()
             addon.CheckBuffs(false)
             RefreshSpellList()
         end

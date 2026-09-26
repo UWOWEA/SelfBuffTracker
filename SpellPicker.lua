@@ -442,7 +442,8 @@ local function CreatePickerFrame()
             row:SetScript("OnClick", function()
                 local keyToSave = entry.spellID and tostring(entry.spellID) or entry.name
                 SelfBuffTrackerDB.trackedSpells[keyToSave] = true
-
+                
+                addon.MigrateTrackedSpellsToIDs()
                 if addon.CheckBuffs then
                     addon.CheckBuffs(false)
                 end

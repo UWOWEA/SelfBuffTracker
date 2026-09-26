@@ -220,7 +220,6 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 end)
 
 frame:SetScript("OnEvent", function(self, event, unit, ...)
-    print("Event: ", event)
     if event == "ADDON_LOADED" and unit == addonName then
         if not SelfBuffTrackerDB then
             SelfBuffTrackerDB = CopyTable(defaultConfig)
@@ -231,6 +230,8 @@ frame:SetScript("OnEvent", function(self, event, unit, ...)
                 end
             end
         end
+
+        addon.MigrateTrackedSpellsToIDs()
 
         addon.container:ClearAllPoints()
         if SelfBuffTrackerDB.anchorPosition and #SelfBuffTrackerDB.anchorPosition == 5 then
