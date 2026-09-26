@@ -47,7 +47,6 @@ local function GetSpellTexture(spellName)
     return "Interface\\Icons\\INV_Misc_QuestionMark"
 end
 
-local lastSoundTime = 0
 local previouslyMissing = {}
 
 addon.LockContainer = function ()
@@ -119,21 +118,7 @@ local function CheckBuffs()
             icon:Show()
         end
 
-        if SelfBuffTrackerDB.soundEnabled then
-            local now = GetTime()
-            local hasNewlyMissing = false
-            for _, spellName in ipairs(missingSpells) do
-                if not previouslyMissing[spellName] then
-                    hasNewlyMissing = true
-                    break
-                end
-            end
-
-            if hasNewlyMissing or (now - lastSoundTime) > SelfBuffTrackerDB.soundReminderInterval then
-                addon.PlayWarningSound()
-                lastSoundTime = now
-            end
-        end
+        addon.PlaySoundAlert(missingSpells, previouslyMissing)
 
         previouslyMissing = {}
         for _, spellName in ipairs(missingSpells) do
