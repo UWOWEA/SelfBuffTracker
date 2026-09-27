@@ -55,17 +55,6 @@ container:SetScript("OnClick", function(self, button)
         if addon.editDialog:IsShown() then
             addon.editDialog:Hide()
         else
-            local currentSize = SelfBuffTrackerDB.iconSize or 50
-            local currentCols = SelfBuffTrackerDB.columns or 3
-
-            addon.editDialogSizeSlider:SetValue(currentSize)
-            addon.editDialogSizeText:SetText(L.ICON_SIZE)
-            addon.editDialogSizeValueText:SetText(tostring(currentSize))
-
-            addon.editDialogColSlider:SetValue(currentCols)
-            addon.editDialogColText:SetText(L.COLUMS_AMOUNT)
-            addon.editDialogColValueText:SetText(tostring(currentCols))
-
             addon.editDialog:ClearAllPoints()
             addon.editDialog:SetPoint("LEFT", container, "RIGHT", 20, 0)
             addon.editDialog:Show()
@@ -107,7 +96,7 @@ if EditModeManagerFrame then
         container:Show()
     end)
 
-    EventRegistry:RegisterCallback("EditMode.Exit", function() 
+    EventRegistry:RegisterCallback("EditMode.Exit", function()
         ClearEditModeStyle()
         if addon.CheckBuffs then
             addon.CheckBuffs(false)

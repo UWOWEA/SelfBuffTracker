@@ -7,8 +7,8 @@ end
 
 addon.isEditMode = isEditMode
 
-addon.editDialog = CreateFrame("Frame", "SelfBuffTrackerEditDialog", UIParent, "BackdropTemplate")
-addon.editDialog:SetSize(300, 250)
+addon.editDialog = CreateFrame("Frame", "SelfBuffTrackerEditDialog", UIParent, "DialogBorderTranslucentTemplate")
+addon.editDialog:SetSize(380, 150)
 addon.editDialog:SetFrameStrata("FULLSCREEN_DIALOG")
 addon.editDialog:SetFrameLevel(100)
 addon.editDialog:SetMovable(true)
@@ -16,15 +16,6 @@ addon.editDialog:EnableMouse(true)
 addon.editDialog:RegisterForDrag("LeftButton")
 addon.editDialog:SetClampedToScreen(true)
 addon.editDialog:Hide()
-
-addon.editDialog:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-    tile = true, tileSize = 16, edgeSize = 12,
-    insets = { left = 3, right = 3, top = 3, bottom = 3 }
-})
-addon.editDialog:SetBackdropColor(0.05, 0.05, 0.05, 1)
-addon.editDialog:ApplyBackdrop()
 
 addon.editDialog:SetScript("OnDragStart", function(self)
     self:StartMoving()
@@ -35,64 +26,96 @@ addon.editDialog:SetScript("OnDragStop", function(self)
 end)
 
 local title = addon.editDialog:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-title:SetPoint("TOP", addon.editDialog, "TOP", 0, -10)
-title:SetText(L.OPTIONS_TITLE)
+title:SetPoint("TOP", addon.editDialog, "TOP", 0, -20)
+title:SetText(L.OPTIONS_TITLE or "Settings")
+title:SetFontHeight(16)
+addon.editDialog.Title = title
 
 local closeButton = CreateFrame("Button", nil, addon.editDialog, "UIPanelCloseButton")
-closeButton:SetPoint("TOPRIGHT", addon.editDialog, "TOPRIGHT", -2, -2)
+closeButton:SetPoint("TOPRIGHT", addon.editDialog, "TOPRIGHT", 0, 0)
 closeButton:SetScript("OnClick", function()
     addon.editDialog:Hide()
 end)
 
-addon.editDialogSizeSlider = CreateFrame("Slider", "SBTSizeSlider", addon.editDialog, "OptionsSliderTemplate")
-addon.editDialogSizeSlider:SetPoint("TOPLEFT", addon.editDialog, "TOPLEFT", 15, -45)
-addon.editDialogSizeSlider:SetMinMaxValues(20, 100)
-addon.editDialogSizeSlider:SetValueStep(2)
+--- func desc
+---@param name string
+---@param parent Frame
+---@param labelText string
+---@param minVal number
+---@param maxVal number
+---@param stepSize number
+---@param defaultVal number
+---@param callback any
+local function CreateEditModeSlider(name, parent, labelText, minVal, maxVal, stepSize, defaultVal, callback)
+    local slider = CreateFrame("Frame", name, parent, "MinimalSliderWithSteppersTemplate")
 
-addon.editDialogSizeText = addon.editDialogSizeSlider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-addon.editDialogSizeText:SetPoint("BOTTOMLEFT", addon.editDialogSizeSlider, "TOPLEFT", 0, 3)
+    local formatters = {}
+    formatters[MinimalSliderWithSteppersMixin.Label.Right] = function(value)
+        return tostring(math.floor(value + 0.5))
+    end
 
-addon.editDialogSizeValueText = addon.editDialogSizeSlider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-addon.editDialogSizeValueText:SetPoint("BOTTOMRIGHT", addon.editDialogSizeSlider, "TOPRIGHT", 0, 3)
+    local numSteps = (maxVal - minVal) / stepSize
+    slider:Init(defaultVal, minVal, maxVal, numSteps, formatters)
 
-if _G[addon.editDialogSizeSlider:GetName() .. 'Text'] then _G[addon.editDialogSizeSlider:GetName() .. 'Text']:SetText("") end
-if _G[addon.editDialogSizeSlider:GetName() .. 'Low'] then _G[addon.editDialogSizeSlider:GetName() .. 'Low']:SetText("") end
-if _G[addon.editDialogSizeSlider:GetName() .. 'High'] then _G[addon.editDialogSizeSlider:GetName() .. 'High']:SetText("") end
+    if slider.Slider then
+        slider.Slider:HookScript("OnValueChanged", function(self, value)
+            if not slider:IsVisible() then return end
+            callback(math.floor(value + 0.5))
+        end)
+    end
 
-addon.editDialogSizeSlider:SetScript("OnValueChanged", function(self, value)
-    value = math.floor(value + 0.5)
-    SelfBuffTrackerDB.iconSize = value
-    addon.editDialogSizeText:SetText(L.ICON_SIZE)
-    addon.editDialogSizeValueText:SetText(tostring(value))
-    if addon.CheckBuffs then addon.CheckBuffs(false) end
-end)
+    slider.Label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    slider.Label:SetJustifyH("LEFT")
+    slider.Label:SetWidth(120)
+    slider.Label:SetText(labelText)
+    slider.Label:SetFontHeight(14)
 
-addon.editDialogColSlider = CreateFrame("Slider", "SBTColSlider", addon.editDialog, "OptionsSliderTemplate")
-addon.editDialogColSlider:SetPoint("TOPLEFT", addon.editDialogSizeSlider, "BOTTOMLEFT", 0, -35)
-addon.editDialogColSlider:SetMinMaxValues(1, 10)
-addon.editDialogColSlider:SetValueStep(1)
+    return slider
+end
 
-addon.editDialogColText = addon.editDialogColSlider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-addon.editDialogColText:SetPoint("BOTTOMLEFT", addon.editDialogColSlider, "TOPLEFT", 0, 3)
+local function AnchorSliderRow(slider, yOffset)
+    slider.Label:SetPoint("TOPLEFT", addon.editDialog, "TOPLEFT", 15, yOffset)
 
-addon.editDialogColValueText = addon.editDialogColSlider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-addon.editDialogColValueText:SetPoint("BOTTOMRIGHT", addon.editDialogColSlider, "TOPRIGHT", 0, 3)
+    slider:SetPoint("LEFT", slider.Label, "RIGHT", 10, 0)
+    slider:SetPoint("RIGHT", addon.editDialog, "RIGHT", -40, 0)
+end
 
-if _G[addon.editDialogColSlider:GetName() .. 'Text'] then _G[addon.editDialogColSlider:GetName() .. 'Text']:SetText("") end
-if _G[addon.editDialogColSlider:GetName() .. 'Low'] then _G[addon.editDialogColSlider:GetName() .. 'Low']:SetText("") end
-if _G[addon.editDialogColSlider:GetName() .. 'High'] then _G[addon.editDialogColSlider:GetName() .. 'High']:SetText("") end
+SelfBuffTrackerDB = SelfBuffTrackerDB or {}
+local initSize = SelfBuffTrackerDB.iconSize or 50
+local initCols = SelfBuffTrackerDB.columns or 3
 
-addon.editDialogColSlider:SetScript("OnValueChanged", function(self, value)
-    value = math.floor(value + 0.5)
-    SelfBuffTrackerDB.columns = value
-    addon.editDialogColText:SetText(L.COLUMS_AMOUNT)
-    addon.editDialogColValueText:SetText(tostring(value))
-    if addon.CheckBuffs then addon.CheckBuffs(false) end
+addon.editDialogSizeSlider = CreateEditModeSlider(
+    "SBTSizeSlider", addon.editDialog, L.ICON_SIZE or "Icon size",
+    26, 100, 2, initSize,
+    function(val)
+        SelfBuffTrackerDB.iconSize = val
+        if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
+    end
+)
+AnchorSliderRow(addon.editDialogSizeSlider, -55)
+
+addon.editDialogColSlider = CreateEditModeSlider(
+    "SBTColSlider", addon.editDialog, L.COLUMS_AMOUNT or "Columns amount",
+    1, 10, 1, initCols,
+    function(val)
+        SelfBuffTrackerDB.columns = val
+        if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
+    end
+)
+AnchorSliderRow(addon.editDialogColSlider, -95)
+
+addon.editDialog:SetScript("OnShow", function()
+    SelfBuffTrackerDB = SelfBuffTrackerDB or {}
+    local size = SelfBuffTrackerDB.iconSize or 50
+    local cols = SelfBuffTrackerDB.columns or 3
+
+    addon.editDialogSizeSlider:SetValue(size)
+    addon.editDialogColSlider:SetValue(cols)
 end)
 
 if EventRegistry and EventRegistry.RegisterCallback then
     EventRegistry:RegisterCallback("EditMode.Exit", function()
         addon.editDialog:Hide()
-        addon.LockContainer()
+        if addon.LockContainer then addon.LockContainer() end
     end)
 end

@@ -18,6 +18,8 @@ local function AddSlider(cat, variableKey, name, minValue, maxValue, step, defau
     return setting
 end
 
+addon.AddSlider = AddSlider
+
 local function AddDropdown(cat, variableKey, name, defaultValue, getValue, setValue, getOptionsList)
     local setting = Settings.RegisterProxySetting(cat, variableKey, Settings.VarType.String, name, defaultValue, getValue, setValue)
     local function GetOptions()
@@ -81,7 +83,7 @@ local function BuildNativeSettingsPanel()
             addon.CheckBuffs(false)
         end)
 
-    AddSlider(category, "SBT_ReminderInterval", L.REMINDER_INTERVAL, 0.1, 180, 0.1, 0.5,
+    AddSlider(category, "SBT_ReminderInterval", L.REMINDER_INTERVAL, 1, 180, 1, 15,
         function() return SelfBuffTrackerDB.soundReminderInterval end,
         function(value) SelfBuffTrackerDB.soundReminderInterval = value end)
 
@@ -99,7 +101,7 @@ local function BuildNativeSettingsPanel()
             end
             return list
         end)
-    
+
 
     AddCheckbox(category, "SBT_Debug", L.DEBUG_ENABLED, true,
         function() return SelfBuffTrackerDB.isDebug end,
