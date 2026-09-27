@@ -23,7 +23,9 @@
   <br>
   <img src="docs/images/settings.png" alt="Settings" width="45%">
   <img src="docs/images/settings_buffs.png" alt="Settings" width="45%">
+  <br>
   <img src="docs/images/settings_buffs_spellbook.png" alt="Settings" width="45%">
+  <img src="docs/images/settings_flasks_picker.png" alt="Settings" width="45%">
 </p>
 
 ***
