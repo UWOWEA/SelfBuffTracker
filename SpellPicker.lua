@@ -341,36 +341,27 @@ addon.GetSpellbookEntries = GetSpellbookEntries
 local pickerFrame
 
 local function CreatePickerFrame()
-    local f = CreateFrame("Frame", "SelfBuffTrackerSpellPicker", UIParent, "BackdropTemplate")
-    f:SetSize(340, 420)
-    f:SetPoint("CENTER")
-    f:SetFrameStrata("DIALOG")
-    f:SetMovable(true)
-    f:EnableMouse(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
-    f:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 11, right = 12, top = 12, bottom = 11 },
-    })
+    local frame = CreateFrame("Frame", "SelfBuffTrackerSpellPicker", UIParent, "BasicFrameTemplateWithInset")
+    frame:SetSize(380, 420)
+    frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    frame:SetFrameStrata("DIALOG")
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 
-    local title = f:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-    title:SetPoint("TOP", 0, -16)
-    title:SetText(addon.L.PICKER_TITLE)
-    addon.ApplyFont(title, "normalLarge")
+    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    frame.title:SetTextColor(1, 0.82, 0, 1)
+    frame.title:SetPoint("TOPLEFT", frame.TitleBg, "LEFT", 6, 5)
+    frame.title:SetText(addon.L.PICKER_TITLE)
 
-    local closeButton = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-    closeButton:SetPoint("TOPRIGHT", -4, -4)
-    closeButton:SetScript("OnClick", function() f:Hide() end)
-
-    local searchBox = CreateFrame("EditBox", "SelfBuffTrackerSpellPickerSearch", f, "SearchBoxTemplate")
+    local searchBox = CreateFrame("EditBox", "SelfBuffTrackerSpellPickerSearch", frame, "SearchBoxTemplate")
     searchBox:SetSize(200, 20)
-    searchBox:SetPoint("TOP", title, "BOTTOM", -20, -12)
+    searchBox:SetPoint("TOPLEFT", frame.InsetBg, "TOPLEFT", 20, -10)
+    searchBox:SetPoint("LEFT", frame.InsetBg, "LEFT", 10, 5)
 
-    local buffsOnlyCheck = CreateFrame("CheckButton", "SelfBuffTrackerSpellPickerBuffsOnly", f, "UICheckButtonTemplate")
+    local buffsOnlyCheck = CreateFrame("CheckButton", "SelfBuffTrackerSpellPickerBuffsOnly", frame, "UICheckButtonTemplate")
     buffsOnlyCheck:SetPoint("LEFT", searchBox, "RIGHT", 4, 0)
     buffsOnlyCheck:SetSize(22, 22)
     buffsOnlyCheck:SetChecked(true)
@@ -379,22 +370,26 @@ local function CreatePickerFrame()
     buffsOnlyLabel:SetText(addon.L.PICKER_BUFFS_ONLY)
     addon.ApplyFont(buffsOnlyLabel, "highlightSmall")
 
-    local hintText = f:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    local hintText = frame:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     hintText:SetPoint("TOP", searchBox, "BOTTOM", 20, -4)
     hintText:SetText(addon.L.PICKER_HINT_SPEC)
     addon.ApplyFont(hintText, "disableSmall")
 
-    local scrollFrame = CreateFrame("ScrollFrame", "SelfBuffTrackerSpellPickerScroll", f, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 16, -84)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -30, 16)
+    local scrollFrame = CreateFrame("ScrollFrame", "SelfBuffTrackerSpellPickerScroll", frame, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", frame.InsetBg, "TOPLEFT", 20, -50)
+    scrollFrame:SetPoint("BOTTOMRIGHT", frame.InsetBg, "BOTTOMRIGHT", -28, 6)
 
     local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-    scrollChild:SetSize(1, 1)
+    scrollChild:SetSize(300, 1)
     scrollFrame:SetScrollChild(scrollChild)
 
+    local ROW_HEIGHT = 36
     local rows = {}
 
     local function RefreshList()
+        for _, row in ipairs(rows) do row:Hide() end
+        local yOffset = 0
+
         local filter = searchBox:GetText():lower()
         local entries = GetSpellbookEntries(buffsOnlyCheck:GetChecked())
 
@@ -405,40 +400,50 @@ local function CreatePickerFrame()
             end
         end
 
-        for _, row in ipairs(rows) do row:Hide() end
-        scrollChild:SetSize(scrollFrame:GetWidth(), math.max(#shown * 24, 1))
-
         if #entries == 0 then
             hintText:SetText(addon.L.PICKER_HINT_FAIL)
         else
             hintText:SetText(addon.L.PICKER_HINT_SPEC)
         end
 
+
         for i, entry in ipairs(shown) do
             local row = rows[i]
             if not row then
-                row = CreateFrame("Button", nil, scrollChild)
-                row:SetHeight(22)
-                row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+                row = CreateFrame("Button", nil, scrollChild, "BackdropTemplate")
+
+                row:SetHeight(ROW_HEIGHT)
+                row:SetBackdrop({
+                    bgFile = "Interface\\Buttons\\WHITE8X8",
+                    edgeFile = "Interface\\Buttons\\WHITE8X8",
+                    edgeSize = 1,
+                })
+                row:SetBackdropColor(1, 1, 1, 0.05)
+                row:SetBackdropBorderColor(1, 1, 1, 0.08)
+                row:SetScript("OnEnter", function(self) self:SetBackdropColor(1, 1, 1, 0.15) end)
+                row:SetScript("OnLeave", function(self) self:SetBackdropColor(1, 1, 1, 0.05) end)
 
                 row.icon = row:CreateTexture(nil, "ARTWORK")
-                row.icon:SetSize(18, 18)
-                row.icon:SetPoint("LEFT", 2, 0)
+                row.icon:SetSize(26, 26)
+                row.icon:SetPoint("LEFT", 6, 0)
+                row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
-                row.text = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-                row.text:SetPoint("LEFT", row.icon, "RIGHT", 6, 0)
-                row.text:SetPoint("RIGHT", -2, 0)
-                row.text:SetJustifyH("LEFT")
-                addon.ApplyFont(row.text, "highlight")
+                row.name = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 
+                row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
+                row.name:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+                row.name:SetJustifyH("LEFT")
                 rows[i] = row
             end
 
+            local displayName, iconTexture = addon.GetSpellDisplayNameAndIcon(entry.spellID)
+
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 0, -(i - 1) * 24)
+            row:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 0, yOffset)
             row:SetWidth(scrollFrame:GetWidth())
-            row.icon:SetTexture(entry.iconID)
-            row.text:SetText(entry.isRecommended and ("|cff00ccff" .. entry.name .. "|r") or entry.name)
+            row.icon:SetTexture(iconTexture)
+            row.name:SetText(entry.isRecommended and ("|cff00ccff" .. entry.name .. "|r") or displayName)
+            
             row:SetScript("OnClick", function()
                 local idToSave = entry.spellID
 
@@ -463,8 +468,11 @@ local function CreatePickerFrame()
                 if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
                 print("|cff00ff00[SBT]|r " .. string.format(addon.L.PICKER_ADDED, entry.name .. " (ID: " .. (entry.spellID or "Neznámé") .. ")"))
             end)
+
             row:Show()
+            yOffset = yOffset - ROW_HEIGHT
         end
+        scrollChild:SetSize(scrollFrame:GetWidth(), math.abs(yOffset))
     end
 
     searchBox:SetScript("OnTextChanged", function(self)
@@ -473,10 +481,10 @@ local function CreatePickerFrame()
     end)
 
     buffsOnlyCheck:SetScript("OnClick", RefreshList)
-
-    f.RefreshList = RefreshList
-    f:Hide()
-    return f
+    frame:SetScript("OnShow", RefreshList)
+    frame.RefreshList = RefreshList
+    frame:Hide()
+    return frame
 end
 
 function addon.ToggleSpellPicker()
