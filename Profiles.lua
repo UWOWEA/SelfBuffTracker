@@ -1,6 +1,19 @@
 local addonName, addon = ...
 
-local PROFILE_FIELDS = { "trackedSpells", "iconSize", "spacing", "soundEnabled", "soundFile", "soundKit", "soundReminderInterval" }
+local PROFILE_FIELDS = { 
+    "trackedSpells",
+    "trackedFlasks",
+    "iconSize",
+    "spacing",
+    "soundEnabled",
+    "soundFile",
+    "soundKit",
+    "soundReminderInterval",
+    "locale",
+    "anchorPosition",
+    "isFlasksAllowed",
+    "advancedEnabled",
+}
 
 local function GetCharacterKey()
     return GetRealmName() .. "-" .. UnitName("player")

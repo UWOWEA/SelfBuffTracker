@@ -17,6 +17,7 @@ addon.defaultConfig = {
     isLocked = true,
     isFlasksAllowed = false,
     isDebug = false,
+    advancedEnabled = false,
 }
 local defaultConfig = addon.defaultConfig
 
