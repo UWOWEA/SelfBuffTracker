@@ -31,8 +31,8 @@ local events = {
  { name = "PLAYER_ALIVE", ignoreTime = false, needPlayer = false, muteSound = false, },
  { name = "PLAYER_UNGHOST", ignoreTime = false, needPlayer = false, muteSound = false, },
  { name = "PLAYER_ENTER_COMBAT", ignoreTime = true, needPlayer = false, muteSound = false, },
- { name = "PLAYER_LEAVE_COMBAT", ignoreTime = false, needPlayer = false, muteSound = false, },
- { name = "PLAYER_IN_COMBAT_CHANGED", ignoreTime = false, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_LEAVE_COMBAT", ignoreTime = true, needPlayer = false, muteSound = false, },
+ { name = "PLAYER_IN_COMBAT_CHANGED", ignoreTime = true, needPlayer = false, muteSound = false, },
  { name = "PLAYER_CONTROL_GAINED", ignoreTime = true, needPlayer = false, muteSound = false, },
  { name = "PLAYER_LOGOUT", ignoreTime = false, needPlayer = false, muteSound = true, },
  { name = "UNIT_SPELLCAST_SUCCEEDED", ignoreTime = true, needPlayer = true, muteSound = true, },
@@ -180,6 +180,20 @@ local function CheckBuffs(isTimeIgnored, muteSound)
 end
 addon.CheckBuffs = CheckBuffs
 
+C_Timer.NewTicker(1.0, function()
+    if SelfBuffTrackerDB and SelfBuffTrackerDB.isDebug then
+        print("|cffffff00[Debug] [Timer]: running CheckBuffs")
+    end
+
+    if addon.CheckBuffs then
+        addon.CheckBuffs(false)
+    end
+end)
+
+local function clearCache()
+    addon.activeBuffTimers = {}
+end
+
 frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
     if event == "ADDON_LOADED" and unit == addonName then
         if not SelfBuffTrackerDB then
@@ -244,6 +258,7 @@ frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
                 end
             end
             addon.UpdateAuraCache()
+            clearCache()
         end
         if event == "PLAYER_ENTERING_WORLD" or event == "UNIT_AURA" then
             addon.UpdateAuraCache()

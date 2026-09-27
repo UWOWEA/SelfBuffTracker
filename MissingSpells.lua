@@ -62,7 +62,7 @@ local function IsAuraActiveOnPlayer(spellInput)
         end
 
         for _, filter in ipairs(filters) do
-            for i = 1, 40 do
+            for i = 1, 80 do
                 local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, filter)
                 if not ok or not aura then break end
 
@@ -81,21 +81,6 @@ local function IsAuraActiveOnPlayer(spellInput)
                 end
             end
         end
-        --[[
-        for i = 1, 40 do
-            local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-            if not ok or not aura then break end
-
-            if officialName and aura.name and aura.name:lower() == officialName then
-                if aura.spellId then
-                    auraCache[officialName] = aura.spellId
-                    if spellID then
-                        auraCache[tostring(spellID)] = aura.spellId
-                    end
-                end
-                return true
-            end
-        end]]--
     end
     return false
 end
@@ -125,29 +110,12 @@ local function getMissingSpells()
     end
 
     if SelfBuffTrackerDB.isFlasksAllowed and SelfBuffTrackerDB.trackedFlasks then
-        local hasAnyFlaskActive = false
-        local firstTrackedFlask = nil
-        local hasTrackedFlasks = false
-
         for flaskInput, enabled in pairs(SelfBuffTrackerDB.trackedFlasks) do
             if enabled then
-                hasTrackedFlasks = true
-                if not firstTrackedFlask then
-                    firstTrackedFlask = tostring(flaskInput)
-                end
-
-                if IsAuraActiveOnPlayer(flaskInput) then
-                    hasAnyFlaskActive = true
-                    break
+                if not IsAuraActiveOnPlayer(tostring(flaskInput)) then
+                    table.insert(missingSpells, tostring(flaskInput))
                 end
             end
-        end
-
-        if hasTrackedFlasks and not hasAnyFlaskActive and firstTrackedFlask then
-            if SelfBuffTrackerDB.isDebug then
-                print("[SBT Debug] Missing Flask:", firstTrackedFlask)
-            end
-            table.insert(missingSpells, firstTrackedFlask)
         end
     end
 

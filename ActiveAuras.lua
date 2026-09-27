@@ -65,20 +65,6 @@ local function GetAllPlayerAuras()
             end
         end
     end
-    --[[if C_UnitAuras and C_UnitAuras.GetUnitAuras then
-        local ok, rawAuras = pcall(C_UnitAuras.GetUnitAuras, "player", "HELPFUL")
-        if ok and type(rawAuras) == "table" then
-            for _, aura in ipairs(rawAuras) do
-                table.insert(auras, aura)
-                if aura.name then
-                    aurasByName[aura.name:lower()] = true
-                end
-                if aura.spellId then
-                    aurasBySpellID[aura.spellId] = true
-                end
-            end
-        end
-    end]]--
 
     return auras, aurasByName, aurasBySpellID
 end
