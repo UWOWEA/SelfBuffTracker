@@ -22,13 +22,11 @@ local function CreateTrackedFlasksSubcategory(parentCategory)
     addButton:SetSize(80, 22)
     addButton:SetText(L.ADD_BUTTON)
     addButton:SetPoint("LEFT", flaskEditBox, "RIGHT", 8, 0)
-    addon.ApplyFont(addButton, "highlight")
 
     local flaskPickerButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     flaskPickerButton:SetSize(150, 22)
     flaskPickerButton:SetText(L.FLASK_PICKER_BUTTON or "Flask Picker")
     flaskPickerButton:SetPoint("LEFT", addButton, "RIGHT", 8, 0)
-    addon.ApplyFont(flaskPickerButton, "highlight")
     flaskPickerButton:SetScript("OnClick", function()
         if addon.ToggleFlaskPicker then
             addon.ToggleFlaskPicker()

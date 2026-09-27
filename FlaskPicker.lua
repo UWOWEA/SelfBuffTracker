@@ -133,6 +133,7 @@ local function CreateFlaskPickerFrame()
     frame:SetFrameStrata("DIALOG")
 
     frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    frame.title:SetTextColor(1, 0.82, 0, 1)
     frame.title:SetPoint("TOPLEFT", frame.TitleBg, "LEFT", 6, 5)
     frame.title:SetText(L.FLASK_PICKER_TITLE or "Select Flask / Phial")
 
