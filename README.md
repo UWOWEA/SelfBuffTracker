@@ -7,6 +7,7 @@
 ## 🌟 Key Features
 
 *   **Multi-Buff Tracking:** Track as many buffs or spells as you want simultaneously.
+*   **Multi-Flasks Tracking:** Track as many flasks or phials as you want simultaneously.
 *   **Drag & Drop Position:** Easily unlock and move the display frame anywhere on your screen.
 *   **Spellbook & Chat Integration:** Quickly add or remove spells by **Shift-clicking** them directly from your Spellbook or chat links into the command line.
 *   **Audio Alerts:** Plays a clear warning sound when you are missing buffs upon entering combat or at regular intervals.
