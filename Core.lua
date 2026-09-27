@@ -91,10 +91,6 @@ local function CheckBuffs(isTimeIgnored, muteSound)
         muteSound = false
     end
 
-    if addon.isEditMode() then
-        addon.ApplyEditModeStyle()
-        return
-    end
     if not SelfBuffTrackerDB then return end
 
     if UnitIsDeadOrGhost("player") or UnitOnTaxi("player") then
@@ -153,6 +149,10 @@ local function CheckBuffs(isTimeIgnored, muteSound)
             icon:Show()
         end
 
+        if addon.isEditMode() then
+            addon.ApplyEditModeStyle()
+            return
+        end
         previouslyMissing = {}
         local missingCount = 0
         for _, spellName in ipairs(missingSpells) do
