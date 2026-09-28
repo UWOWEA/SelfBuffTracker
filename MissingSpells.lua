@@ -12,8 +12,8 @@ local function IsAuraActiveOnPlayer(spellInput)
     local auraCache = addon.auraIDCache or {}
     local inCombat = InCombatLockdown()
 
-    if C_Spell and C_Spell.GetSpellInfo then
-        local info = C_Spell.GetSpellInfo(spellID or spellInput)
+    if addon.GetSpellInfo then
+        local info = addon.GetSpellInfo(spellID or spellInput)
         if info then
             officialName = info.name and info.name:lower()
             spellID = spellID or info.spellID

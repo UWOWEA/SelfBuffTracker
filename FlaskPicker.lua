@@ -114,7 +114,7 @@ addon.ALL_GAME_FLASKS = {
 
 for i = #addon.ALL_GAME_FLASKS, 1, -1 do
     local entry = addon.ALL_GAME_FLASKS[i]
-    local spellInfo = C_Spell.GetSpellInfo(entry.spellID)
+    local spellInfo = addon.GetSpellInfo(entry.spellID)
     if not spellInfo then
         table.remove(addon.ALL_GAME_FLASKS, i)
     end

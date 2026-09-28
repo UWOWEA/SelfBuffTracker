@@ -10,8 +10,8 @@ local function MigrateTrackedSpellsToIDs()
         local spellID = tonumber(spellInput)
         local targetID = spellID
 
-        if not targetID and C_Spell and C_Spell.GetSpellInfo then
-            local info = C_Spell.GetSpellInfo(spellInput)
+        if not targetID and addon.GetSpellInfo then
+            local info = addon.GetSpellInfo(spellInput)
             if info and info.spellID then
                 targetID = info.spellID
             end
@@ -48,7 +48,7 @@ addon.MigrateTrackedSpellsToIDs = MigrateTrackedSpellsToIDs
 local function GetSpellDisplayNameAndIcon(spellInput)
     local spellID = tonumber(spellInput)
 
-    if spellID and C_Spell and C_Spell.GetSpellInfo then
+    if spellID and addon.GetSpellInfo then
         local targetID = spellID
         if C_Spell.GetOverrideSpell then
             local overrideID = C_Spell.GetOverrideSpell(spellID)
@@ -57,14 +57,14 @@ local function GetSpellDisplayNameAndIcon(spellInput)
             end
         end
 
-        local info = C_Spell.GetSpellInfo(targetID) or C_Spell.GetSpellInfo(spellID)
+        local info = addon.GetSpellInfo(targetID) or addon.GetSpellInfo(spellID)
         if info then
             return info.name or ("Spell " .. spellInput), info.iconID
         end
     end
 
-    if C_Spell and C_Spell.GetSpellInfo then
-        local info = C_Spell.GetSpellInfo(spellInput)
+    if addon.GetSpellInfo then
+        local info = addon.GetSpellInfo(spellInput)
         if info then
             return info.name or spellInput, info.iconID
         end
@@ -80,7 +80,7 @@ local function GetSpellDisplayNameAndIcon(spellInput)
     if addon.ALL_GAME_FLASKS then
         for _, entry in ipairs(addon.ALL_GAME_FLASKS) do
             if tostring(entry.spellID) == tostring(spellInput) then
-                local spellInfo = C_Spell.GetSpellInfo(entry.spellID)
+                local spellInfo = addon.GetSpellInfo(entry.spellID)
                 if spellInfo then
                     return spellInfo.name, spellInfo.iconID or "Interface\\Icons\\INV_Misc_QuestionMark"
                 end

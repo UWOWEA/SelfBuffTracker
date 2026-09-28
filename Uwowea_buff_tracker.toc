@@ -15,6 +15,7 @@
 ## Category-zhTW: Uwowea
 ## X-Curse-Project-ID: 1703798
 
+SpellInfo.lua
 Locales.lua
 Core.lua
 Sounds.lua

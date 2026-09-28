@@ -48,7 +48,7 @@ local iconPool = {}
 local function CreateBuffIcon()
     local btn = CreateFrame("Button", nil, addon.container, "BackdropTemplate")
     btn:SetSize(SelfBuffTrackerDB.iconSize, SelfBuffTrackerDB.iconSize)
-    
+
     btn:SetFrameLevel(addon.container:GetFrameLevel() + 1)
     local tex = btn:CreateTexture(nil, "ARTWORK")
     tex:SetAllPoints(btn)
@@ -64,7 +64,7 @@ local function CreateBuffIcon()
 end
 
 local function GetSpellTexture(spellName)
-    local spellInfo = C_Spell.GetSpellInfo(spellName)
+    local spellInfo = addon.GetSpellInfo(spellName)
     if spellInfo and spellInfo.iconID then
         return spellInfo.iconID
     end
@@ -134,7 +134,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
             if not iconPool[i] then
                 iconPool[i] = CreateBuffIcon()
             end
-            
+
             local icon = iconPool[i]
             icon:SetSize(iconSize, iconSize)
             icon.texture:SetTexture(GetSpellTexture(spellName))
@@ -145,7 +145,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
 
             local xOffset = col * (iconSize + spacing)
             local yOffset = -row * (iconSize + spacing)
-            
+
             icon:SetPoint("TOPLEFT", addon.container, "TOPLEFT", xOffset, yOffset)
             icon:Show()
         end
@@ -238,8 +238,8 @@ frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
                 local expTime = GetTime() + 30
                 addon.activeBuffTimers[tostring(spellID)] = expTime
 
-                if C_Spell and C_Spell.GetSpellInfo then
-                    local info = C_Spell.GetSpellInfo(spellID)
+                if addon.GetSpellInfo then
+                    local info = addon.GetSpellInfo(spellID)
                     if info and info.name then
                         addon.activeBuffTimers[info.name:lower()] = expTime
                     end

@@ -87,9 +87,9 @@ local function IsSpellCurrentlyAvailable(spellID)
 end
 
 local function GetSpellNameAndIcon(spellID)
-    if not spellID or not C_Spell or not C_Spell.GetSpellInfo then return nil, nil end
+    if not spellID or not addon.GetSpellInfo then return nil, nil end
 
-    local ok, a, _, c = pcall(C_Spell.GetSpellInfo, spellID)
+    local ok, a, _, c = pcall(addon.GetSpellInfo, spellID)
     if not ok or not a then return nil, nil end
 
     if type(a) == "table" then
@@ -248,14 +248,14 @@ local function GetSpellbookEntries(buffsOnly)
                 for i = 1, numSpells do
                     local spellIndex = offset + i
                     local isPassive = false
-                    
+
                     if IsPassiveSpell then
                         isPassive = IsPassiveSpell(spellIndex, bookType)
                     end
                     if not isPassive then
                         local spellName, spellSubName = GetSpellBookItemName(spellIndex, bookType)
                         local iconID = GetSpellBookItemTexture(spellIndex, bookType)
-                        
+
                         if spellName and not seen[spellName] and not ExcludedUtilitySpellNames[spellName] then
                             local link = GetSpellBookItemLink and GetSpellBookItemLink(spellIndex, bookType)
                             local spellID = nil
@@ -267,8 +267,8 @@ local function GetSpellbookEntries(buffsOnly)
                                 end
                             end
 
-                            if not spellID and C_Spell and C_Spell.GetSpellInfo then
-                                local info = C_Spell.GetSpellInfo(spellName)
+                            if not spellID and addon.GetSpellInfo then
+                                local info = addon.GetSpellInfo(spellName)
                                 if info and info.spellID then
                                     spellID = info.spellID
                                 end
@@ -443,7 +443,7 @@ local function CreatePickerFrame()
             row:SetWidth(scrollFrame:GetWidth())
             row.icon:SetTexture(iconTexture)
             row.name:SetText(entry.isRecommended and ("|cff00ccff" .. entry.name .. "|r") or displayName)
-            
+
             row:SetScript("OnClick", function()
                 local idToSave = entry.spellID
 
@@ -459,12 +459,12 @@ local function CreatePickerFrame()
                     print("keyToSave: ", keyToSave, ", spellID: ", entry.spellID, ", spell.name: ", entry.name)
                 end
                 SelfBuffTrackerDB.trackedSpells[keyToSave] = true
-                
+
                 addon.MigrateTrackedSpellsToIDs()
                 if addon.CheckBuffs then
                     addon.CheckBuffs(false)
                 end
-                
+
                 if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
                 print("|cff00ff00[SBT]|r " .. string.format(addon.L.PICKER_ADDED, entry.name .. " (ID: " .. (entry.spellID or "Neznámé") .. ")"))
             end)

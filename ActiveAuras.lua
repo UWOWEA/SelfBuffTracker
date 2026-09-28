@@ -12,8 +12,8 @@ local function ScanAurasByFilter(filter)
                 if aura.name and aura.spellId then
                     local lowerName = aura.name:lower()
                     addon.auraIDCache[lowerName] = aura.spellId
-                    if C_Spell and C_Spell.GetSpellInfo then
-                        local info = C_Spell.GetSpellInfo(aura.name)
+                    if addon.GetSpellInfo then
+                        local info = addon.GetSpellInfo(aura.name)
                         if info and info.spellID then
                             addon.auraIDCache[tostring(info.spellID)] = aura.spellId
                         end
@@ -27,7 +27,7 @@ end
 local function UpdateAuraCache()
     if InCombatLockdown() then return end
     ScanAurasByFilter("HELPFUL")
-    
+
     if SelfBuffTrackerDB and SelfBuffTrackerDB.isFlasksAllowed then
         ScanAurasByFilter("HELPFUL|CANCELABLE")
     end
