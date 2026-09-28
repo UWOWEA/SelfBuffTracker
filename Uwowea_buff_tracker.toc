@@ -1,5 +1,6 @@
 ## Interface: 120100, 16001, 20506, 11509, 120105
 ## Title: Uwowea Library: Buff tracker
+## IconTexture: Interface/AddOns/Uwowea_buff_tracker/art/logo
 ## Notes: Buff tracker
 ## Author: Jan Galek
 ## Version: 1.0.0
