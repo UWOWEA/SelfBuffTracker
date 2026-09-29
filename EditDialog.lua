@@ -8,7 +8,7 @@ end
 addon.isEditMode = isEditMode
 
 addon.editDialog = CreateFrame("Frame", "SelfBuffTrackerEditDialog", UIParent, "DialogBorderTranslucentTemplate")
-addon.editDialog:SetSize(380, 150)
+addon.editDialog:SetSize(380, 190)
 addon.editDialog:SetFrameStrata("FULLSCREEN_DIALOG")
 addon.editDialog:SetFrameLevel(100)
 addon.editDialog:SetMovable(true)
@@ -83,6 +83,7 @@ end
 SelfBuffTrackerDB = SelfBuffTrackerDB or {}
 local initSize = SelfBuffTrackerDB.iconSize or 50
 local initCols = SelfBuffTrackerDB.columns or 3
+local initSpacing = SelfBuffTrackerDB.spacing or 10
 
 addon.editDialogSizeSlider = CreateEditModeSlider(
     "SBTSizeSlider", addon.editDialog, L.ICON_SIZE or "Icon size",
@@ -104,13 +105,25 @@ addon.editDialogColSlider = CreateEditModeSlider(
 )
 AnchorSliderRow(addon.editDialogColSlider, -95)
 
+addon.editDialogSpacingSlider = CreateEditModeSlider(
+    "SBTSpacingSlider", addon.editDialog, L.ICON_SPACING or "Spacing",
+    1, 20, 1, initSpacing,
+    function(val)
+        SelfBuffTrackerDB.spacing = val
+        if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
+    end
+)
+AnchorSliderRow(addon.editDialogSpacingSlider, -135)
+
 addon.editDialog:SetScript("OnShow", function()
     SelfBuffTrackerDB = SelfBuffTrackerDB or {}
     local size = SelfBuffTrackerDB.iconSize or 50
     local cols = SelfBuffTrackerDB.columns or 3
+    local spacing = SelfBuffTrackerDB.spacing or 10
 
     addon.editDialogSizeSlider:SetValue(size)
     addon.editDialogColSlider:SetValue(cols)
+    addon.editDialogSpacingSlider:SetValue(spacing)
 end)
 
 if EventRegistry and EventRegistry.RegisterCallback then

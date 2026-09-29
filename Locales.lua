@@ -90,10 +90,13 @@ local BASE = {
 
 local overrides = {
     csCZ = {
+        MOVE_HINT = "SelfBuffTracker (Posunout myší)",
+
         OPTIONS_TITLE = "SelfBuffTracker - Nastavení",
         LANGUAGE_LABEL = "Jazyk:",
         LANGUAGE_AUTO = "Automaticky (podle hry)",
         SOUND_ENABLED = "Zvukové upozornění",
+        DEBUG_ENABLED = "Povolit debugování",
         LOCKED_POSITION = "Uzamčená pozice",
         ICON_SIZE = "Velikost ikon",
         ICON_SPACING = "Mezera mezi ikonami",
@@ -104,6 +107,8 @@ local overrides = {
         COPY_BUTTON = "Kopírovat",
         COPY_DONE = "Nastavení zkopírováno.",
         TRACKED_BUFFS = "Sledované buffy",
+        TRACKED_FLASKS = "Sledované elixíry",
+        ALLOW_FLASKS = "Povolit sledování elixírů",
         ADD_BUTTON = "Přidat",
         SPELLBOOK_BUTTON = "Vybrat ze spellbooku",
         CUSTOM_SOUND_LABEL = "Vlastní (ID %s)",

@@ -1,15 +1,85 @@
 local addonName, addon = ...
 local L = addon.L
 
-local container = CreateFrame("Button", "SelfBuffTrackerContainer", UIParent, "BackdropTemplate")
+local function CreateBuffTracker(name, parent)
+    local container = CreateFrame("Button", name, parent, "BackdropTemplate")
+    container:SetSize(200, 60)
+    container:SetMovable(true)
+    container:EnableMouse(true)
+    container:RegisterForDrag("LeftButton")
+    container:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    container:SetClampedToScreen(true)
+
+    container.ChangeSize = function (iconSize, cols, spacing, itemAmount)
+        if cols <= 0 then cols = itemAmount end
+        local numRows = math.ceil(itemAmount / cols)
+        local numCols = math.min(itemAmount, cols)
+
+        local totalWidth = (numCols * iconSize) + ((numCols - 1) * spacing)
+        local totalHeight = (numRows * iconSize) + ((numRows - 1) * spacing)
+
+        container:SetSize(math.max(totalWidth, 100), totalHeight + 10)
+    end
+
+    local containerTitle = container:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+
+    container.title = containerTitle
+    container.title:SetPoint("BOTTOM", container, "TOP", 0, 4)
+    container.title:SetText(addon.L.MOVE_HINT)
+    container.title:Hide()
+    addon.ApplyFont(container.title, "normalSmall")
+
+    container:SetScript("OnClick", function(self, button)
+        if addon.isEditMode() then
+            if addon.editDialog:IsShown() then
+                addon.editDialog:Hide()
+            else
+                addon.editDialog:ClearAllPoints()
+                addon.editDialog:SetPoint("LEFT", container, "RIGHT", 20, 0)
+                addon.editDialog:Show()
+
+                self:Show()
+                addon.ApplyEditModeStyle()
+                if containerTitle then
+                    containerTitle:Show()
+                end
+            end
+        end
+    end)
+
+    container:SetScript("OnDragStart", function(self)
+        if addon.isEditMode() then
+            if addon.editDialog then
+                addon.editDialog:Hide()
+            end
+            self:StartMoving()
+        end
+    end)
+
+    container:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        local point, _, relPoint, x, y = self:GetPoint()
+        SelfBuffTrackerDB.anchorPosition = { point, nil, relPoint, x, y }
+        if addon.isEditMode() then
+            addon.ApplyEditModeStyle()
+        end
+    end)
+
+    return container
+end
+
+addon.CreateBuffTracker = CreateBuffTracker
+
+--local container = CreateFrame("Button", "SelfBuffTrackerContainer", UIParent, "BackdropTemplate")
+local container = CreateBuffTracker("SelfBuffTrackerContainer", UIParent)
 addon.container = container
-container:SetSize(200, 60)
+--[[container:SetSize(200, 60)
 container:SetMovable(true)
 container:EnableMouse(true)
 container:RegisterForDrag("LeftButton")
 container:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 container:SetClampedToScreen(true)
-
+]]--
 local containerTitle = container:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 addon.containerTitle = containerTitle
 containerTitle:SetPoint("BOTTOM", container, "TOP", 0, 4)
@@ -23,6 +93,7 @@ editOverlay:SetFrameLevel(container:GetFrameLevel() + 10)
 editOverlay:Hide()
 
 addon.editOverlay = editOverlay
+
 
 local function ApplyEditModeStyle()
     addon.container:Show()
