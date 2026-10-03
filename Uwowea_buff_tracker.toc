@@ -15,6 +15,7 @@
 ## Category-zhTW: Uwowea
 ## X-Curse-Project-ID: 1703798
 
+Variables.lua
 SpellInfo.lua
 Locales.lua
 Core.lua
@@ -27,6 +28,7 @@ OptionsFlasks.lua
 OptionsBuffs.lua
 Commands.lua
 Container.lua
+Frame.lua
 EditDialog.lua
 GameInfo.lua
 MissingSpells.lua

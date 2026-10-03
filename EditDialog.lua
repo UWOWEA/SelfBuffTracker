@@ -8,7 +8,7 @@ end
 addon.isEditMode = isEditMode
 
 addon.editDialog = CreateFrame("Frame", "SelfBuffTrackerEditDialog", UIParent, "DialogBorderTranslucentTemplate")
-addon.editDialog:SetSize(380, 190)
+addon.editDialog:SetSize(380, 260)
 addon.editDialog:SetFrameStrata("FULLSCREEN_DIALOG")
 addon.editDialog:SetFrameLevel(100)
 addon.editDialog:SetMovable(true)
@@ -73,16 +73,66 @@ local function CreateEditModeSlider(name, parent, labelText, minVal, maxVal, ste
     return slider
 end
 
+local function CreateSubmitButton(name, parent, labelText, callback)
+    local button = CreateFrame('Button', name, parent, "UIPanelButtonTemplate")
+    button:SetSize(100, 30)
+    button:SetText(labelText)
+    button:SetPoint("RIGHT", parent, "BOTTOMRIGHT", -20, 30)
+    button:HookScript("OnClick", function (self)
+        if not button:IsVisible() then return end
+        callback()
+    end)
+
+    return button
+end
+
+local function CreateRevertButton(name, parent, labelText, callback)
+    local button = CreateFrame('Button', name, parent, "UIPanelButtonTemplate")
+    button:SetSize(120, 30)
+    button:SetText(labelText)
+    button:SetPoint("LEFT", parent, "BOTTOMLEFT", 20, 30)
+    button:HookScript("OnClick", function (self)
+        if not button:IsVisible() then return end
+        callback()
+    end)
+
+    return button
+end
+
+local function CreateCheckbox(name, parent, labelText, defaultVal, callback)
+    local checkBox = CreateFrame("CheckButton", name, parent, "OptionsBaseCheckButtonTemplate")
+
+    checkBox.Label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    checkBox.Label:SetJustifyH("LEFT")
+    checkBox.Label:SetWidth(120)
+    checkBox.Label:SetText(labelText)
+    checkBox.Label:SetFontHeight(14)
+
+    checkBox:SetPoint("LEFT", checkBox.Label, "RIGHT", 15, 0)
+    checkBox.Label:SetPoint("TOPLEFT", addon.editDialog, "TOPLEFT", 15, -215)
+
+
+
+    checkBox:HookScript("OnClick", function()
+        if not checkBox:IsVisible() then return end
+        callback(checkBox:GetChecked())
+    end)
+
+    return checkBox
+end
+
 local function AnchorSliderRow(slider, yOffset)
     slider.Label:SetPoint("TOPLEFT", addon.editDialog, "TOPLEFT", 15, yOffset)
 
-    slider:SetPoint("LEFT", slider.Label, "RIGHT", 10, 0)
+    slider:SetPoint("LEFT", slider.Label, "RIGHT", 15, 0)
     slider:SetPoint("RIGHT", addon.editDialog, "RIGHT", -40, 0)
 end
 
 SelfBuffTrackerDB = SelfBuffTrackerDB or {}
 local initSize = SelfBuffTrackerDB.iconSize or 50
 local initCols = SelfBuffTrackerDB.columns or 3
+local initRows = SelfBuffTrackerDB.rows or 5
+local initLimitRows = SelfBuffTrackerDB.limitRows or false
 local initSpacing = SelfBuffTrackerDB.spacing or 10
 
 addon.editDialogSizeSlider = CreateEditModeSlider(
@@ -105,6 +155,16 @@ addon.editDialogColSlider = CreateEditModeSlider(
 )
 AnchorSliderRow(addon.editDialogColSlider, -95)
 
+addon.editDialogRowSlider = CreateEditModeSlider(
+    "SBTRowSlider", addon.editDialog, L.ROWS_AMOUNT or "Rows amount",
+    1, 10, 1, initRows,
+    function(val)
+        SelfBuffTrackerDB.rows = val
+        if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
+    end
+)
+AnchorSliderRow(addon.editDialogRowSlider, -135)
+
 addon.editDialogSpacingSlider = CreateEditModeSlider(
     "SBTSpacingSlider", addon.editDialog, L.ICON_SPACING or "Spacing",
     1, 20, 1, initSpacing,
@@ -113,17 +173,63 @@ addon.editDialogSpacingSlider = CreateEditModeSlider(
         if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
     end
 )
-AnchorSliderRow(addon.editDialogSpacingSlider, -135)
+AnchorSliderRow(addon.editDialogSpacingSlider, -175)
+
+addon.editDialogLimitRowsCheckbox = CreateCheckbox(
+    "SBTEditDialogLimitRowsCheckbox",
+    addon.editDialog,
+    "Limit rows",
+    initLimitRows,
+    function(val)
+        SelfBuffTrackerDB.limitRows = val
+        addon.editDialogRowSlider.SetEnabled(addon.editDialogRowSlider, val)
+        if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
+    end
+)
+
+addon.editDialogRevert = CreateRevertButton(
+    "SBTEditDialogRevert",
+    addon.editDialog,
+    "Revert Changes",
+    function()
+
+    end
+)
+
+addon.editDialogSubmit = CreateSubmitButton(
+    "SBTEditDialogSubmit",
+    addon.editDialog,
+    "Submit",
+    function()
+        addon.editDialog:Hide()
+    end
+)
+
+local children = {addon.editDialog:GetChildren()}
+
+local fullHeight = 0
+for _, child in ipairs(children) do
+    local height = child:GetHeight(false)
+    fullHeight = fullHeight + height
+end
+
+addon.editDialog:SetHeight(fullHeight + 15)
 
 addon.editDialog:SetScript("OnShow", function()
     SelfBuffTrackerDB = SelfBuffTrackerDB or {}
     local size = SelfBuffTrackerDB.iconSize or 50
     local cols = SelfBuffTrackerDB.columns or 3
     local spacing = SelfBuffTrackerDB.spacing or 10
+    local limitRows = SelfBuffTrackerDB.limitRows or false
+    local rows = SelfBuffTrackerDB.rows or 5
 
     addon.editDialogSizeSlider:SetValue(size)
     addon.editDialogColSlider:SetValue(cols)
     addon.editDialogSpacingSlider:SetValue(spacing)
+    addon.editDialogLimitRowsCheckbox:SetChecked(limitRows)
+    addon.editDialogRowSlider.SetEnabled(addon.editDialogRowSlider, limitRows)
+    addon.editDialogRowSlider:SetValue(rows)
+    addon.editDialogSubmit:Show()
 end)
 
 if EventRegistry and EventRegistry.RegisterCallback then
