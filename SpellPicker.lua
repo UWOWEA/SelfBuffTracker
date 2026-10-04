@@ -220,7 +220,8 @@ local function GetSpellbookEntries(buffsOnly)
                     if itemOk and itemInfo and itemInfo.name and not itemInfo.isPassive and itemInfo.itemType == Enum.SpellBookItemType.Spell
                         and not seen[itemInfo.name] and not ExcludedUtilitySpellNames[itemInfo.name] then
                         local spellID = itemInfo.spellID or itemInfo.actionID
-                        if not shapeshiftFormIDs[spellID] then
+
+                        if not shapeshiftFormIDs[spellID] and not C_Spell.IsAutoAttackSpell(spellID) and not C_Spell.IsSpellDisabled(spellID) and not C_Spell.IsConsumableSpell(spellID) then
                             local isBuff = IsBuffSpell(spellID)
                             local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
                             if isRelevant and (not buffsOnly or isBuff) and IsSpellCurrentlyAvailable(spellID) then
@@ -231,6 +232,7 @@ local function GetSpellbookEntries(buffsOnly)
                                     category = skillLineInfo.name,
                                     isBuff = isBuff,
                                     spellID = spellID,
+                                    isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
                                 })
                             end
                         end
@@ -297,6 +299,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         isBuff = isBuff,
                                         spellID = spellID,
                                         isRecommended = true,
+                                        isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
                                     })
                                 elseif isRelevant and (not buffsOnly or isBuff) then
                                     seen[spellName] = true
@@ -306,6 +309,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         category = name,
                                         spellID = spellID,
                                         isBuff = isBuff,
+                                        isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
                                     })
                                 end
                             end
@@ -443,6 +447,16 @@ local function CreatePickerFrame()
             row:SetWidth(scrollFrame:GetWidth())
             row.icon:SetTexture(iconTexture)
             row.name:SetText(entry.isRecommended and ("|cff00ccff" .. entry.name .. "|r") or displayName)
+
+            row:SetScript("OnEnter", function()
+                GameTooltip:SetOwner(row, "ANCHOR_TOPRIGHT")
+                GameTooltip:SetSpellByID(entry.spellID)
+                GameTooltip:Show()
+            end)
+
+            row:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
 
             row:SetScript("OnClick", function()
                 local idToSave = entry.spellID

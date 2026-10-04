@@ -49,7 +49,7 @@ end
 addon.GameInfo.IsInicialized = IsInicialized
 
 function addon.GetGameVersion ()
-    
+
     local buildVersion, buildNumber, buildDate, interfaceVersion, localizedVersion, buildInfo, currentVersion  = GetBuildInfo()
     print("buildVersion: ", buildVersion)
     print("buildNumber: ", buildNumber)

@@ -5,6 +5,8 @@ for _, event in ipairs(addon.events) do
     frame:RegisterEvent(event.name)
 end
 
+frame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
+
 local function clearCache()
     addon.activeBuffTimers = {}
 end

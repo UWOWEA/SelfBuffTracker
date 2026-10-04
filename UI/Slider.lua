@@ -1,0 +1,2 @@
+---@class Slider
+local Slider = {}

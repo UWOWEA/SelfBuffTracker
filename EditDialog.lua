@@ -34,18 +34,10 @@ addon.editDialog.Title = title
 local closeButton = CreateFrame("Button", nil, addon.editDialog, "UIPanelCloseButton")
 closeButton:SetPoint("TOPRIGHT", addon.editDialog, "TOPRIGHT", 0, 0)
 closeButton:SetScript("OnClick", function()
+    PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE);
     addon.editDialog:Hide()
 end)
 
---- func desc
----@param name string
----@param parent Frame
----@param labelText string
----@param minVal number
----@param maxVal number
----@param stepSize number
----@param defaultVal number
----@param callback any
 local function CreateEditModeSlider(name, parent, labelText, minVal, maxVal, stepSize, defaultVal, callback)
     local slider = CreateFrame("Frame", name, parent, "MinimalSliderWithSteppersTemplate")
 
@@ -64,7 +56,7 @@ local function CreateEditModeSlider(name, parent, labelText, minVal, maxVal, ste
         end)
     end
 
-    slider.Label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    slider.Label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightMedium")
     slider.Label:SetJustifyH("LEFT")
     slider.Label:SetWidth(120)
     slider.Label:SetText(labelText)
@@ -101,6 +93,7 @@ end
 
 local function CreateCheckbox(name, parent, labelText, defaultVal, callback)
     local checkBox = CreateFrame("CheckButton", name, parent, "OptionsBaseCheckButtonTemplate")
+    checkBox:SetChecked(defaultVal)
 
     checkBox.Label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     checkBox.Label:SetJustifyH("LEFT")
@@ -109,9 +102,7 @@ local function CreateCheckbox(name, parent, labelText, defaultVal, callback)
     checkBox.Label:SetFontHeight(14)
 
     checkBox:SetPoint("LEFT", checkBox.Label, "RIGHT", 15, 0)
-    checkBox.Label:SetPoint("TOPLEFT", addon.editDialog, "TOPLEFT", 15, -215)
-
-
+    checkBox.Label:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, -215)
 
     checkBox:HookScript("OnClick", function()
         if not checkBox:IsVisible() then return end

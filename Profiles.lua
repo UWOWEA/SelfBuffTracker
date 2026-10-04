@@ -1,6 +1,6 @@
 local addonName, addon = ...
 
-local PROFILE_FIELDS = { 
+local PROFILE_FIELDS = {
     "trackedSpells",
     "trackedFlasks",
     "iconSize",
@@ -13,6 +13,10 @@ local PROFILE_FIELDS = {
     "anchorPosition",
     "isFlasksAllowed",
     "advancedEnabled",
+    "rows",
+    "columns",
+    "limitRows",
+    "advancedEnabled"
 }
 
 local function GetCharacterKey()

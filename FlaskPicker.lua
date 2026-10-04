@@ -195,6 +195,16 @@ local function CreateFlaskPickerFrame()
             row.icon:SetTexture(iconTexture)
             row.name:SetText(displayName or entry.name)
 
+            row:SetScript("OnEnter", function()
+                GameTooltip:SetOwner(row, "ANCHOR_TOPRIGHT")
+                GameTooltip:SetSpellByID(entry.spellID)
+                GameTooltip:Show()
+            end)
+
+            row:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
+
             row:SetScript("OnClick", function()
                 SelfBuffTrackerDB.trackedFlasks = SelfBuffTrackerDB.trackedFlasks or {}
                 SelfBuffTrackerDB.trackedFlasks[tostring(entry.spellID)] = true
