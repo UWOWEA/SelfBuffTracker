@@ -35,14 +35,12 @@ addon.LockContainer = function ()
     SelfBuffTrackerDB.isLocked = true
     addon.container:SetBackdropColor(0, 0, 0, 0)
     addon.container:SetBackdropBorderColor(0, 0, 0, 0)
-    addon.container.title:Hide()
 end
 
 addon.UnLockContainer = function ()
     SelfBuffTrackerDB.isLocked = false
     addon.container:SetBackdropColor(0, 0, 0, 0.6)
     addon.container:SetBackdropBorderColor(1, 1, 1, 1)
-    addon.container.title:Show()
 end
 
 local function CheckBuffs(isTimeIgnored, muteSound)
@@ -54,11 +52,26 @@ local function CheckBuffs(isTimeIgnored, muteSound)
 
     if UnitIsDeadOrGhost("player") or UnitOnTaxi("player") then
         addon.container:Hide()
-        addon.container.title:Hide()
         return
     end
 
-    local missingSpells = addon.getMissingSpells()
+    local missingSpells = {}
+    if addon.isEditMode() and addon.container.IsInEditMode then
+        missingSpells = {
+            17050,
+            17050,
+            17050,
+            17050,
+            17050,
+            17050,
+            17050,
+            17050,
+            17050,
+            17050,
+        }
+    else
+        missingSpells = addon.getMissingSpells()
+    end
 
     if SelfBuffTrackerDB.isDebug then
         print("[Debug] missing spells amount:", missingSpells)
@@ -74,7 +87,9 @@ local function CheckBuffs(isTimeIgnored, muteSound)
         print("[Debug] missing spells amount:", numMissing)
     end
     if numMissing > 0 then
-        addon.container:Show()
+        if not addon.isEditMode() and not addon.container.IsInEditMode then
+            addon.container:Show()
+        end
 
         local iconSize = SelfBuffTrackerDB.iconSize
         local spacing = SelfBuffTrackerDB.spacing
@@ -123,11 +138,9 @@ local function CheckBuffs(isTimeIgnored, muteSound)
             addon.container:Show()
             addon.container:SetBackdropColor(0, 0, 0, 0.6)
             addon.container:SetBackdropBorderColor(1, 1, 1, 1)
-            addon.container.title:Show()
             addon.container:SetSize(120, SelfBuffTrackerDB.iconSize + 10)
         else
             addon.container:Hide()
-            addon.container.title:Hide()
         end
     end
 end

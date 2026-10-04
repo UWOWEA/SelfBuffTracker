@@ -35,9 +35,9 @@ Options.lua
 OptionsFlasks.lua
 OptionsBuffs.lua
 Commands.lua
+EditDialog.lua
 Container.lua
 Frame.lua
-EditDialog.lua
 GameInfo.lua
 MissingSpells.lua
 Alerts.lua

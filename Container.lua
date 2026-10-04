@@ -41,23 +41,16 @@ local function CreateBuffTracker(name, parent)
         return totalWidth, totalHeight
     end
 
-    container.GetWidth = function ()
+    container.GetSizeWidth = function ()
         local width, _ = container.GetSizes()
         return width
     end
 
-    container.GetHeight = function ()
+    container.GetSizeHeight = function ()
         local _, height = container.GetSizes()
         return height
     end
 
-    local containerTitle = container:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-
-    container.title = containerTitle
-    container.title:SetPoint("BOTTOM", container, "TOP", 0, 4)
-    container.title:SetText(addon.L.MOVE_HINT)
-    container.title:Hide()
-    addon.ApplyFont(container.title, "normalSmall")
 
     container:SetScript("OnClick", function(self, button)
         if addon.isEditMode() then
@@ -65,14 +58,24 @@ local function CreateBuffTracker(name, parent)
                 addon.editDialog:Hide()
             else
                 addon.editDialog:ClearAllPoints()
-                addon.editDialog:SetPoint("LEFT", container, "RIGHT", 20, 0)
+                local point, relativeTo, relativePoint, offsetX, offsetY = container:GetPoint()
+
+                if offsetY > 0 then
+                    offsetY = offsetY - container.GetSizeHeight()
+                else
+                    offsetY = offsetY + container.GetSizeHeight()
+                end
+
+                if offsetX > 0 then
+                    offsetX = offsetX - container.GetSizeWidth()
+                else
+                    offsetX = offsetX + container.GetSizeWidth()
+                end
+                addon.editDialog:SetPoint(point, relativeTo, relativePoint, offsetX, offsetY)
                 addon.editDialog:Show()
 
                 self:Show()
                 addon.ApplyEditModeStyle()
-                if containerTitle then
-                    containerTitle:Show()
-                end
             end
         end
     end)
@@ -144,7 +147,6 @@ local function ApplyEditModeStyle()
     editOverlay:SetBackdropColor(0.12, 0.35, 0.45, 0.6)
     editOverlay:SetBackdropBorderColor(0.2, 0.8, 1.0, 0.9)
     editOverlay:Show()
-    if addon.containerTitle then addon.containerTitle:Show() end
     addon.container.IsInEditMode = true
 
     addon.CreateBackupSetting()
@@ -154,7 +156,6 @@ addon.ApplyEditModeStyle = ApplyEditModeStyle
 
 local function ClearEditModeStyle()
     editOverlay:Hide()
-    container.title:Hide()
 
     addon.container.IsInEditMode = false
 end
@@ -164,10 +165,6 @@ addon.ClearEditModeStyle = ClearEditModeStyle
 if EditModeManagerFrame then
     EventRegistry:RegisterCallback("EditMode.Enter", function()
         ApplyEditModeStyle()
-        if container.title then
-            container.title:SetText(L.MOVE_HINT)
-            container.title:Show()
-        end
         container:Show()
     end)
 
