@@ -38,6 +38,14 @@ closeButton:SetScript("OnClick", function()
     addon.editDialog:Hide()
 end)
 
+---@param name string
+---@param parent frame|Frame
+---@param labelText string
+---@param minVal number
+---@param maxVal number
+---@param stepSize number
+---@param defaultVal number
+---@param callback function
 local function CreateEditModeSlider(name, parent, labelText, minVal, maxVal, stepSize, defaultVal, callback)
     local slider = CreateFrame("Frame", name, parent, "MinimalSliderWithSteppersTemplate")
 
@@ -78,6 +86,10 @@ local function CreateSubmitButton(name, parent, labelText, callback)
     return button
 end
 
+---@param name string
+---@param parent frame|Frame
+---@param labelText string
+---@param callback function
 local function CreateRevertButton(name, parent, labelText, callback)
     local button = CreateFrame('Button', name, parent, "UIPanelButtonTemplate")
     button:SetSize(120, 30)
@@ -91,6 +103,11 @@ local function CreateRevertButton(name, parent, labelText, callback)
     return button
 end
 
+---@param name string
+---@param parent frame|Frame
+---@param labelText string
+---@param defaultVal boolean
+---@param callback function
 local function CreateCheckbox(name, parent, labelText, defaultVal, callback)
     local checkBox = CreateFrame("CheckButton", name, parent, "OptionsBaseCheckButtonTemplate")
     checkBox:SetChecked(defaultVal)
@@ -183,7 +200,10 @@ addon.editDialogRevert = CreateRevertButton(
     addon.editDialog,
     "Revert Changes",
     function()
-
+        addon.RevertBackupSetting()
+        addon.editDialog:Hide()
+        addon.editDialog:Show()
+        if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
     end
 )
 
@@ -206,7 +226,7 @@ end
 
 addon.editDialog:SetHeight(fullHeight + 15)
 
-addon.editDialog:SetScript("OnShow", function()
+local function OnShow()
     SelfBuffTrackerDB = SelfBuffTrackerDB or {}
     local size = SelfBuffTrackerDB.iconSize or 50
     local cols = SelfBuffTrackerDB.columns or 3
@@ -221,6 +241,10 @@ addon.editDialog:SetScript("OnShow", function()
     addon.editDialogRowSlider.SetEnabled(addon.editDialogRowSlider, limitRows)
     addon.editDialogRowSlider:SetValue(rows)
     addon.editDialogSubmit:Show()
+end
+
+addon.editDialog:SetScript("OnShow", function()
+    OnShow()
 end)
 
 if EventRegistry and EventRegistry.RegisterCallback then

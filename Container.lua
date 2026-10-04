@@ -11,6 +11,7 @@ local function CreateBuffTracker(name, parent)
     container:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     container:SetClampedToScreen(true)
     container.items = {}
+    container.IsInEditMode = false
 
     container.AddItem = function (name, icon)
 
@@ -144,6 +145,9 @@ local function ApplyEditModeStyle()
     editOverlay:SetBackdropBorderColor(0.2, 0.8, 1.0, 0.9)
     editOverlay:Show()
     if addon.containerTitle then addon.containerTitle:Show() end
+    addon.container.IsInEditMode = true
+
+    addon.CreateBackupSetting()
 end
 
 addon.ApplyEditModeStyle = ApplyEditModeStyle
@@ -151,6 +155,8 @@ addon.ApplyEditModeStyle = ApplyEditModeStyle
 local function ClearEditModeStyle()
     editOverlay:Hide()
     container.title:Hide()
+
+    addon.container.IsInEditMode = false
 end
 
 addon.ClearEditModeStyle = ClearEditModeStyle

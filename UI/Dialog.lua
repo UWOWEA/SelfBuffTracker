@@ -1,4 +1,4 @@
----@class Dialog:Frame
+---@class dialog : Frame
 local dialog = CreateFrame("Frame", "SelfBuffTrackerEditDialog", UIParent, "DialogBorderTranslucentTemplate")
 dialog:SetSize(380, 260)
 dialog:SetFrameStrata("FULLSCREEN_DIALOG")

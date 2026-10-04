@@ -52,3 +52,13 @@ addon.InitConfig = function ()
         end
     end
 end
+
+local settingBackup
+
+addon.CreateBackupSetting = function()
+    settingBackup = CopyTable(SelfBuffTrackerDB)
+end
+
+addon.RevertBackupSetting = function()
+    SelfBuffTrackerDB = settingBackup
+end

@@ -103,8 +103,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
             icon:Show()
         end
 
-        if addon.isEditMode() then
-            addon.ApplyEditModeStyle()
+        if addon.isEditMode() and addon.container.IsInEditMode then
             return
         end
         previouslyMissing = {}
