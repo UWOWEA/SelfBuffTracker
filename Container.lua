@@ -1,6 +1,36 @@
 local addonName, addon = ...
 local L = addon.L
 
+local EDIT_DIALOG_GAP = 10
+
+local function PositionEditDialog(container)
+    local dialog = addon.editDialog
+    local uiScale = UIParent:GetEffectiveScale()
+    local ratio = container:GetEffectiveScale() / uiScale
+    local left, bottom, width, height = container:GetRect()
+    if not left then return end
+
+    left, bottom, width, height = left * ratio, bottom * ratio, width * ratio, height * ratio
+    local dialogScale = dialog:GetEffectiveScale() / uiScale
+    local dialogW = dialog:GetWidth() * dialogScale
+    local dialogH = dialog:GetHeight() * dialogScale
+    local screenW, screenH = UIParent:GetSize()
+
+    local x = left + (width - dialogW) / 2
+    local y = bottom - EDIT_DIALOG_GAP - dialogH
+    if y < 0 then
+        y = bottom + height + EDIT_DIALOG_GAP
+    end
+
+    x = math.max(0, math.min(x, screenW - dialogW))
+    y = math.max(0, math.min(y, screenH - dialogH))
+
+    dialog:ClearAllPoints()
+    dialog:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x / dialogScale, y / dialogScale)
+end
+
+addon.PositionEditDialog = PositionEditDialog
+
 local function CreateBuffTracker(name, parent)
 
     local container = CreateFrame("Button", name, parent, "BackdropTemplate")
@@ -57,21 +87,7 @@ local function CreateBuffTracker(name, parent)
             if addon.editDialog:IsShown() then
                 addon.editDialog:Hide()
             else
-                addon.editDialog:ClearAllPoints()
-                local point, relativeTo, relativePoint, offsetX, offsetY = container:GetPoint()
-
-                if offsetY > 0 then
-                    offsetY = offsetY - container.GetSizeHeight()
-                else
-                    offsetY = offsetY + container.GetSizeHeight()
-                end
-
-                if offsetX > 0 then
-                    offsetX = offsetX - container.GetSizeWidth()
-                else
-                    offsetX = offsetX + container.GetSizeWidth()
-                end
-                addon.editDialog:SetPoint(point, relativeTo, relativePoint, offsetX, offsetY)
+                addon.PositionEditDialog(container)
                 addon.editDialog:Show()
 
                 self:Show()
