@@ -57,18 +57,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
 
     local missingSpells = {}
     if addon.isEditMode() and addon.container.IsInEditMode then
-        missingSpells = {
-            17050,
-            17050,
-            17050,
-            17050,
-            17050,
-            17050,
-            17050,
-            17050,
-            17050,
-            17050,
-        }
+        missingSpells = addon.Mocks.missingSpells
     else
         missingSpells = addon.getMissingSpells()
     end

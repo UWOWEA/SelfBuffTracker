@@ -17,6 +17,9 @@
 ## X-Curse-Project-ID: 1703798
 
 
+Mocks\Mocks.lua
+Mocks\[Family]\ContainerEditSpells.lua
+
 UI/Button.lua
 UI/Checkbox.lua
 UI/Dialog.lua

@@ -1,0 +1,3 @@
+local addonName, addon = ...
+
+addon.Mocks = {}
