@@ -4,6 +4,8 @@ addon.auraIDCache = addon.auraIDCache or {}
 
 -- duration == 0 means the aura has no expiration
 -- Values can be secret in combat; those are stored as 0 (unknown / no expiration)
+---@param aura AuraData
+---@param fallbackSpellId number|nil
 addon.MakeAuraCacheEntry = function(aura, fallbackSpellId)
     local function plain(value)
         if issecretvalue and issecretvalue(value) then return nil end
@@ -17,6 +19,7 @@ addon.MakeAuraCacheEntry = function(aura, fallbackSpellId)
 end
 
 -- Returns remaining seconds, 0 when expired, or nil when unknown/permanent
+---@param key number
 addon.GetCachedAuraRemaining = function(key)
     local entry = addon.auraIDCache[key]
     if not entry or not entry.expirationTime or entry.expirationTime == 0 then
