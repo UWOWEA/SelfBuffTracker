@@ -1,4 +1,5 @@
 ignore:
     - .github
     - .vscode
+    - .types
     - docs

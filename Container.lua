@@ -3,7 +3,14 @@ local L = addon.L
 
 local EDIT_DIALOG_GAP = 10
 
+---@class ContainerButton : Button
+---@field items table
+---@field IsInEditMode boolean
+local containerMixin
+
+---@param container Frame
 local function PositionEditDialog(container)
+    ---@type Frame
     local dialog = addon.editDialog
     local uiScale = UIParent:GetEffectiveScale()
     local ratio = container:GetEffectiveScale() / uiScale
@@ -31,6 +38,10 @@ end
 
 addon.PositionEditDialog = PositionEditDialog
 
+--- func desc
+---@param name string
+---@param parent Frame
+---@return ContainerButton
 local function CreateBuffTracker(name, parent)
 
     local container = CreateFrame("Button", name, parent, "BackdropTemplate")
@@ -47,10 +58,10 @@ local function CreateBuffTracker(name, parent)
 
     end
 
-    container.ChangeSize = function (iconSize, cols, spacing, itemAmount)
-        if cols <= 0 then cols = itemAmount end
-        local numRows = math.ceil(itemAmount / cols)
-        local numCols = math.min(itemAmount, cols)
+    container.ChangeSize = function (iconSize, cols, spacing, rows)
+        local amount = cols * rows
+        local numRows = math.ceil(amount / cols)
+        local numCols = math.min(amount, cols)
 
         local totalWidth = (numCols * iconSize) + ((numCols - 1) * spacing)
         local totalHeight = (numRows * iconSize) + ((numRows - 1) * spacing)
@@ -64,9 +75,10 @@ local function CreateBuffTracker(name, parent)
         local iconSize = SelfBuffTrackerDB.iconSize
         local spacing = SelfBuffTrackerDB.spacing
         local cols = SelfBuffTrackerDB.columns
+        local rows = SelfBuffTrackerDB.rows
 
         local totalWidth = (cols * iconSize) + ((cols - 1) * spacing)
-        local totalHeight = (cols * iconSize) + ((cols - 1) * spacing)
+        local totalHeight = (rows * iconSize) + ((rows - 1) * spacing)
 
         return totalWidth, totalHeight
     end
@@ -128,8 +140,9 @@ local function CreateBuffTracker(name, parent)
             local iconSize = SelfBuffTrackerDB.iconSize
             local spacing = SelfBuffTrackerDB.spacing
             local cols = SelfBuffTrackerDB.columns
+            local rows = SelfBuffTrackerDB.rows
 
-            container.ChangeSize(iconSize, cols, spacing, cols)
+            container.ChangeSize(iconSize, cols, spacing, rows)
         end
     end)
 

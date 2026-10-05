@@ -7,7 +7,6 @@ addon.defaultConfig = {
     spacing = 10,
     columns = 3,
     rows = 5,
-    limitRows = false,
     soundEnabled = true,
     soundFile = 567400,
     soundKit = "RAID_WARNING",

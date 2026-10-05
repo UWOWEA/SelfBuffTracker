@@ -56,7 +56,7 @@ frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
         end
         if event == "PLAYER_REGEN_DISABLED" then
             if addon.UpdateAuraCache then
-                addon.UpdateAuraCache()
+                addon.UpdateAuraCache(true)
             end
         end
         if event == "PLAYER_REGEN_ENABLED" then
@@ -71,6 +71,9 @@ frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
         end
         if event == "PLAYER_ENTERING_WORLD" or event == "UNIT_AURA" then
             addon.UpdateAuraCache()
+            if event == "UNIT_AURA" and unit == "player" and InCombatLockdown() then
+                addon.RefreshTrackedAurasInCombat()
+            end
         end
         for _, checkEvent in ipairs(addon.events) do
             if event == checkEvent.name then

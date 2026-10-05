@@ -15,7 +15,6 @@ local PROFILE_FIELDS = {
     "advancedEnabled",
     "rows",
     "columns",
-    "limitRows",
     "advancedEnabled"
 }
 

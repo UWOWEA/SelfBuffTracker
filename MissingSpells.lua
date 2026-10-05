@@ -20,24 +20,27 @@ local function IsAuraActiveOnPlayer(spellInput)
         end
     end
 
-    if spellID and buffTimers[tostring(spellID)] then
-        if buffTimers[tostring(spellID)] > now then
-            return true
-        end
-    end
-
-    if officialName and buffTimers[officialName] then
-        if buffTimers[officialName] > now then
-            return true
-        end
-    end
-
     if inCombat then
-        if spellID and auraCache[tostring(spellID)] then
-            return true
+        if spellID and buffTimers[tostring(spellID)] then
+            if buffTimers[tostring(spellID)] > now then
+                return true
+            end
         end
-        if officialName and auraCache[officialName] then
-            return true
+
+        if officialName and buffTimers[officialName] then
+            if buffTimers[officialName] > now then
+                return true
+            end
+        end
+
+        -- Cached auras count down from the combat-entry snapshot; permanent ones (nil) stay active
+        for _, key in ipairs({ spellID and tostring(spellID) or false, officialName or false }) do
+            if key and auraCache[key] then
+                local remaining = addon.GetCachedAuraRemaining(key)
+                if remaining == nil or remaining > 0 then
+                    return true
+                end
+            end
         end
     end
 
@@ -68,9 +71,10 @@ local function IsAuraActiveOnPlayer(spellInput)
 
                 if officialName and aura.name and aura.name:lower() == officialName then
                     if aura.spellId then
-                        auraCache[officialName] = aura.spellId
+                        local entry = addon.MakeAuraCacheEntry(aura)
+                        auraCache[officialName] = entry
                         if spellID then
-                            auraCache[tostring(spellID)] = aura.spellId
+                            auraCache[tostring(spellID)] = entry
                         end
                     end
                     return true

@@ -1,13 +1,16 @@
 local addonName, addon = ...
 
-
 local iconPool = {}
 
-local function CreateBuffIcon()
-    local btn = CreateFrame("Button", nil, addon.container, "BackdropTemplate")
+---@param spellId number
+---@return Button
+local function CreateBuffIcon(spellId)
+    local btn = CreateFrame("Button", nil, addon.container, "SecureActionButtonTemplate,BackdropTemplate")
     btn:SetSize(SelfBuffTrackerDB.iconSize, SelfBuffTrackerDB.iconSize)
 
-    btn:SetFrameLevel(addon.container:GetFrameLevel() - 1)
+    if addon.isEditMode() and addon.container.IsInEditMode then
+        btn:SetFrameLevel(addon.container:GetFrameLevel() - 1)
+    end
     local tex = btn:CreateTexture(nil, "ARTWORK")
     tex:SetAllPoints(btn)
     btn.texture = tex
@@ -17,6 +20,12 @@ local function CreateBuffIcon()
         edgeSize = 2,
     })
     btn:SetBackdropBorderColor(1, 0, 0, 1)
+
+    if addon.isEditMode() and addon.container.IsInEditMode then
+    else
+        btn:RegisterForClicks("LeftButtonUp", "LeftButtonDown")
+        btn:SetAttribute("type1", "spell")
+    end
 
     return btn
 end
@@ -66,8 +75,15 @@ local function CheckBuffs(isTimeIgnored, muteSound)
         print("[Debug] missing spells amount:", missingSpells)
     end
 
+    -- Secure buttons cannot be changed, moved or hidden during combat
+    local inCombat = InCombatLockdown()
+
+    -- Alpha is the only visibility control allowed on protected frames in combat
     for _, icon in ipairs(iconPool) do
-        icon:Hide()
+        icon:SetAlpha(0)
+        if not inCombat then
+            icon:Hide()
+        end
     end
 
     local numMissing = #missingSpells
@@ -75,6 +91,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
     if SelfBuffTrackerDB.isDebug then
         print("[Debug] missing spells amount:", numMissing)
     end
+
     if numMissing > 0 then
         if not addon.isEditMode() and not addon.container.IsInEditMode then
             addon.container:Show()
@@ -83,28 +100,40 @@ local function CheckBuffs(isTimeIgnored, muteSound)
         local iconSize = SelfBuffTrackerDB.iconSize
         local spacing = SelfBuffTrackerDB.spacing
         local cols = SelfBuffTrackerDB.columns or 3
-        if cols <= 0 then cols = numMissing end
+        local rows = SelfBuffTrackerDB.rows or 5
 
-        addon.container.ChangeSize(iconSize, cols, spacing, numMissing)
+        addon.container.ChangeSize(iconSize, cols, spacing, rows)
+        local max = cols * rows
 
-        for i, spellName in ipairs(missingSpells) do
-            if not iconPool[i] then
-                iconPool[i] = CreateBuffIcon()
+        for i, spellId in ipairs(missingSpells) do
+            if i > max then
+                return
+            end
+            if not iconPool[i] and not inCombat then
+                iconPool[i] = CreateBuffIcon(spellId)
             end
 
             local icon = iconPool[i]
-            icon:SetSize(iconSize, iconSize)
-            icon.texture:SetTexture(GetSpellTexture(spellName))
-            icon:ClearAllPoints()
+            if icon then
+                icon:SetAlpha(1)
+                icon.texture:SetTexture(GetSpellTexture(spellId))
+            end
+            if icon and not inCombat then
+                if not (addon.isEditMode() and addon.container.IsInEditMode) then
+                    icon:SetAttribute("spell1", tonumber(spellId) or spellId)
+                end
+                icon:SetSize(iconSize, iconSize)
+                icon:ClearAllPoints()
 
-            local col = (i - 1) % cols
-            local row = math.floor((i - 1) / cols)
+                local col = (i - 1) % cols
+                local row = math.floor((i - 1) / cols)
 
-            local xOffset = col * (iconSize + spacing)
-            local yOffset = -row * (iconSize + spacing)
+                local xOffset = col * (iconSize + spacing)
+                local yOffset = -row * (iconSize + spacing)
 
-            icon:SetPoint("TOPLEFT", addon.container, "TOPLEFT", xOffset, yOffset)
-            icon:Show()
+                icon:SetPoint("TOPLEFT", addon.container, "TOPLEFT", xOffset, yOffset)
+                icon:Show()
+            end
         end
 
         if addon.isEditMode() and addon.container.IsInEditMode then
@@ -120,16 +149,6 @@ local function CheckBuffs(isTimeIgnored, muteSound)
         missingCount = missingCount + numMissing
         if not muteSound and (numMissing > 0 or missingCount > 0) then
             addon.PlaySoundAlert(missingSpells, previouslyMissing, isTimeIgnored)
-        end
-    else
-        previouslyMissing = {}
-        if not SelfBuffTrackerDB.isLocked then
-            addon.container:Show()
-            addon.container:SetBackdropColor(0, 0, 0, 0.6)
-            addon.container:SetBackdropBorderColor(1, 1, 1, 1)
-            addon.container:SetSize(120, SelfBuffTrackerDB.iconSize + 10)
-        else
-            addon.container:Hide()
         end
     end
 end
