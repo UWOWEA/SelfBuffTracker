@@ -90,8 +90,9 @@ local function BuildNativeSettingsPanel()
     AddDropdown(category, "SBT_SoundKit", L.SOUND_LABEL, "RAID_WARNING",
         function() return SelfBuffTrackerDB.soundKit end,
         function(value)
+            print ("Sound setting val: ", value)
             SelfBuffTrackerDB.soundKit = value
-            local kitID = SOUNDKIT[value]
+            local kitID = addon.SOUNDKIT[value]
             if kitID then PlaySound(kitID, "Master") end
         end,
         function()

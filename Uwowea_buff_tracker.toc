@@ -30,6 +30,7 @@ UI/Frame.lua
 UI/Slider.lua
 
 Variables.lua
+SoundKit.lua
 SpellInfo.lua
 Locales.lua
 Core.lua
