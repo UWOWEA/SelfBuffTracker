@@ -51,6 +51,7 @@ addon.SoundPresets = {
         { label = "Zippy Magic", id = 316737, kit = "CDMSND_WAR2_ZIPPY_MAGIC" }, -- Zippy Magic
     },
     animals = {
+        { key = "murlocAggro", label = "Murloc Aggro", kit = "MURLOC_AGGRO" },
         { key = "cat", label = "Cat", kit = "CDMSND_ANIMALS_CAT" },
         { key = "chicken", label = "Chicken", kit = "CDMSND_ANIMALS_CHICKEN" },
         { key = "cow", label = "Cow", kit = "CDMSND_ANIMALS_COW" },
