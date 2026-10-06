@@ -61,23 +61,32 @@ local function BuildNativeSettingsPanel()
         local subcategory = {}
         for _, preset in ipairs(addon.SoundPresets[soundCategory.value] or {}) do
             table.insert(subcategory, {
-                value = preset.kit,
+                value = preset.kit or preset.file,
                 label = preset.label,
                 text = preset.label,
             })
         end
-        table.insert(soundOptions, {
-            text = L[soundCategory.labelKey],
-            subcategory = subcategory,
-        })
+        if #subcategory > 0 then
+            table.insert(soundOptions, {
+                text = L[soundCategory.labelKey],
+                subcategory = subcategory,
+            })
+        end
     end
 
     UI.Widgets.Settings:CreateDropdown(category, "SBT_SoundKit", L.SOUND_LABEL, "RAID_WARNING",
-        function() return SelfBuffTrackerDB.soundKit end,
+        function() return SelfBuffTrackerDB.soundKit or SelfBuffTrackerDB.soundFile end,
         function(value)
-            SelfBuffTrackerDB.soundKit = value
-            local kitID = addon.SOUNDKIT[value]
-            if kitID then PlaySound(kitID, "Master") end
+            for _, presets in pairs(addon.SoundPresets) do
+                for _, preset in ipairs(presets) do
+                    if (preset.kit or preset.file) == value then
+                        if not addon.SelectSoundPreset(preset) and preset.file then
+                            print("|cffff0000[SBT]|r " .. string.format(L.CMD_SOUND_FILE_NOT_FOUND, preset.file))
+                        end
+                        return
+                    end
+                end
+            end
         end,
         soundOptions)
 

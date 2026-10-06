@@ -67,7 +67,7 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
         print("|cff00ff00[SBT] " .. L.CMD_SOUND_LIST_HEADER .. "|r")
         for _, soundCategory in ipairs(addon.SoundCategories) do
             for _, preset in ipairs(addon.SoundPresets[soundCategory.value] or {}) do
-                print(" - " .. (preset.key or preset.kit:lower()) .. " (" .. preset.label .. ")")
+                print(" - " .. (preset.key or (preset.kit and preset.kit:lower()) or preset.file) .. " (" .. preset.label .. ")")
             end
         end
         print("|cffffaa00" .. L.CMD_SOUND_CUSTOM_HINT .. "|r")
@@ -87,11 +87,11 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
             end
         end
 
-        if not found or not SOUNDKIT[found.kit] then
+        if not found then
             print("|cff00ff00[SBT]|r " .. string.format(L.CMD_SOUND_UNKNOWN, args[2]))
+        elseif not addon.SelectSoundPreset(found) then
+            print("|cff00ff00[SBT]|r " .. string.format(L.CMD_SOUND_FILE_NOT_FOUND, found.file or found.label))
         else
-            SelfBuffTrackerDB.soundKit = found.kit
-            PlaySound(SOUNDKIT[found.kit], "Master")
             print("|cff00ff00[SBT]|r " .. string.format(L.CMD_SOUND_SET, found.label))
             if addon.RefreshOptionsPanel then addon.RefreshOptionsPanel() end
         end

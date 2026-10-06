@@ -8,6 +8,7 @@ addon.SoundCategories = {
     { value = "devices", labelKey = "SOUND_CATEGORY_DEVICES" },
     { value = "impacts", labelKey = "SOUND_CATEGORY_IMPACTS" },
     { value = "shorts", labelKey = "SOUND_CATEGORY_SHORTS" },
+    { value = "custom", labelKey = "SOUND_CATEGORY_CUSTOM" },
 }
 
 addon.SoundPresets = {
@@ -116,14 +117,38 @@ addon.SoundPresets = {
         { key = "wine_bottle", label = "Wine Bottle", kit = "CDMSND_SHORT_WINE_BOTTLE" },
         { key = "wood_xylophone", label = "Wood Xylophone", kit = "CDMSND_SHORT_WOOD_XYLOPHONE" },
     },
+    custom = {
+        -- Add bundled sound files here; see README.md for the expected format.
+        { key = "TheBuffHasExpired", label = "The Buff Has Expired", file = "Interface\\AddOns\\Uwowea_buff_tracker\\Sounds\\TheBuffHasExpired.ogg" },
+    },
 }
 
 for _, presets in pairs(addon.SoundPresets) do
     for i = #presets, 1, -1 do
-        if not addon.SOUNDKIT[presets[i].kit] then
+        if presets[i].kit and not addon.SOUNDKIT[presets[i].kit] then
             table.remove(presets, i)
         end
     end
+end
+
+function addon.SelectSoundPreset(preset)
+    if preset.file then
+        if not PlaySoundFile(preset.file, "Master") then
+            return false
+        end
+        SelfBuffTrackerDB.soundFile = preset.file
+        SelfBuffTrackerDB.soundKit = nil
+        return true
+    end
+
+    local kitID = preset.kit and addon.SOUNDKIT[preset.kit]
+    if not kitID then
+        return false
+    end
+
+    SelfBuffTrackerDB.soundKit = preset.kit
+    PlaySound(kitID, "Master")
+    return true
 end
 
 function addon.PlayWarningSound()

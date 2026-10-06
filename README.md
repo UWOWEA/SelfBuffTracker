@@ -15,6 +15,22 @@
 *   **Minimalist & Clean UI:** Dynamic icon frames that scale and auto-adjust based on how many buffs are currently missing.
 
 ***
+
+## Adding a bundled sound
+
+Addon authors can bundle a supported audio file and expose it as a sound preset:
+
+1. Place the audio file in the addon's directory, for example `Sounds/alert.ogg`.
+2. Add an entry to the `custom` list in `Sounds.lua`:
+
+   ```lua
+   { key = "my_alert", label = "My Alert", file = "Interface\\AddOns\\Uwowea_buff_tracker\\Sounds\\alert.ogg" },
+   ```
+
+The preset will appear under **Custom sounds** in the sound settings and can also be selected with `/sbt warning my_alert`.
+
+***
+
 ## Screenshots
 
 <p align="center">
