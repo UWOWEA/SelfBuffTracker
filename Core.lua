@@ -80,6 +80,16 @@ local function GetSpellTexture(spellName)
     return "Interface\\Icons\\INV_Misc_QuestionMark"
 end
 
+local function GetClickSpellID(trackedSpellID)
+    local spellID = tonumber(trackedSpellID) or trackedSpellID
+    local baseSpellID = addon.GetBaseSpell and addon.GetBaseSpell(spellID)
+    spellID = baseSpellID or spellID
+
+    local overrideID = C_Spell and C_Spell.GetOverrideSpell
+        and C_Spell.GetOverrideSpell(spellID)
+    return overrideID and overrideID > 0 and overrideID or spellID
+end
+
 local previouslyMissing = {}
 local wasOnCooldown = {}
 
@@ -160,9 +170,10 @@ local function CheckBuffs(isTimeIgnored, muteSound)
             if icon then
                 icon:SetAlpha(1)
                 icon.texture:SetTexture(GetSpellTexture(spellId))
-                UpdateIconCooldown(icon, spellId)
+                local clickSpellID = GetClickSpellID(spellId)
+                UpdateIconCooldown(icon, clickSpellID)
 
-                local onCooldown = IsSpellOnCooldown(icon, spellId)
+                local onCooldown = IsSpellOnCooldown(icon, clickSpellID)
                 if not onCooldown then
                     table.insert(alertSpells, spellId)
                     if wasOnCooldown[spellId] then
@@ -173,7 +184,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
             end
             if icon and not inCombat then
                 if not (addon.isEditMode() and addon.container.IsInEditMode) then
-                    icon:SetAttribute("spell1", tonumber(spellId) or spellId)
+                    icon:SetAttribute("spell1", GetClickSpellID(spellId))
                 end
                 icon:SetSize(iconSize, iconSize)
                 icon:ClearAllPoints()

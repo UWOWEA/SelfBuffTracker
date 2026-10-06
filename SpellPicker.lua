@@ -220,9 +220,13 @@ local function GetSpellbookEntries(buffsOnly)
                     if itemOk and itemInfo and itemInfo.name and not itemInfo.isPassive and itemInfo.itemType == Enum.SpellBookItemType.Spell
                         and not seen[itemInfo.name] and not ExcludedUtilitySpellNames[itemInfo.name] then
                         local spellID = itemInfo.spellID or itemInfo.actionID
+                        local spellOverrides = addon.GetSpellOverrides
+                            and addon.GetSpellOverrides(spellID)
+                        local trackedAuraID = spellOverrides and spellOverrides[1]
+                        local tracksMappedAura = trackedAuraID ~= nil
 
                         if not shapeshiftFormIDs[spellID] and not C_Spell.IsAutoAttackSpell(spellID) and not C_Spell.IsSpellDisabled(spellID) and not C_Spell.IsConsumableSpell(spellID) then
-                            local isBuff = IsBuffSpell(spellID)
+                            local isBuff = tracksMappedAura or IsBuffSpell(spellID)
                             local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
                             if isRelevant and (not buffsOnly or isBuff) and IsSpellCurrentlyAvailable(spellID) then
                                 seen[itemInfo.name] = true
@@ -232,6 +236,8 @@ local function GetSpellbookEntries(buffsOnly)
                                     category = skillLineInfo.name,
                                     isBuff = isBuff,
                                     spellID = spellID,
+                                    trackedAuraID = trackedAuraID,
+                                    isRecommended = tracksMappedAura,
                                     isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
                                 })
                             end
@@ -282,7 +288,11 @@ local function GetSpellbookEntries(buffsOnly)
                             end
 
                             if not (spellID and shapeshiftFormIDs[spellID]) then
-                                local isBuff = IsBuffSpell(spellID)
+                                local spellOverrides = addon.GetSpellOverrides
+                                    and addon.GetSpellOverrides(spellID)
+                                local trackedAuraID = spellOverrides and spellOverrides[1]
+                                local tracksMappedAura = trackedAuraID ~= nil
+                                local isBuff = tracksMappedAura or IsBuffSpell(spellID)
                                 local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
 
                                 if not isRelevant and spellID then
@@ -298,6 +308,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         category = name,
                                         isBuff = isBuff,
                                         spellID = spellID,
+                                        trackedAuraID = trackedAuraID,
                                         isRecommended = true,
                                         isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
                                     })
@@ -309,6 +320,8 @@ local function GetSpellbookEntries(buffsOnly)
                                         category = name,
                                         spellID = spellID,
                                         isBuff = isBuff,
+                                        trackedAuraID = trackedAuraID,
+                                        isRecommended = tracksMappedAura,
                                         isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
                                     })
                                 end
@@ -474,9 +487,9 @@ local function CreatePickerFrame()
             end)
 
             row:SetScript("OnClick", function()
-                local idToSave = entry.spellID
+                local idToSave = entry.trackedAuraID or entry.spellID
 
-                if idToSave and C_Spell and C_Spell.GetOverrideSpell then
+                if not entry.trackedAuraID and idToSave and C_Spell and C_Spell.GetOverrideSpell then
                     local overrideID = C_Spell.GetOverrideSpell(idToSave)
                     if overrideID and overrideID > 0 then
                         idToSave = overrideID

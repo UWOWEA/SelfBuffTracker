@@ -7,3 +7,7 @@ addon.Database.RecommendedSpells = {
     21562,
     364342,
 }
+
+addon.Database.SpellAuraOverrides = {
+   [1259705] = 1270842,
+}
