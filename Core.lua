@@ -151,6 +151,10 @@ local function CheckBuffs(isTimeIgnored, muteSound)
             addon.container:Show()
         end
 
+        if not inCombat then
+            addon.container:Show()
+        end
+
         local iconSize = SelfBuffTrackerDB.iconSize
         local spacing = SelfBuffTrackerDB.spacing
         local cols = SelfBuffTrackerDB.columns or 3
@@ -220,6 +224,10 @@ local function CheckBuffs(isTimeIgnored, muteSound)
         -- Spells on cooldown stay silent; the alert fires right after the cooldown expires
         if not muteSound and #alertSpells > 0 then
             addon.PlaySoundAlert(alertSpells, previouslyMissing, isTimeIgnored or cooldownReady)
+        end
+    else
+        if not inCombat then
+            addon.container:Hide()
         end
     end
 end

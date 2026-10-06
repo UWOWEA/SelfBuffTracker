@@ -58,6 +58,14 @@ frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
             if addon.UpdateAuraCache then
                 addon.UpdateAuraCache(true)
             end
+            if not InCombatLockdown() then
+                addon.container:Show()
+            end
+        end
+        if event == "PLAYER_ENTER_COMBAT" then
+            if not InCombatLockdown() then
+                addon.container:Show()
+            end
         end
         if event == "PLAYER_REGEN_ENABLED" then
             local now = GetTime()
