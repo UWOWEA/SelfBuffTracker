@@ -134,6 +134,10 @@ local function CheckBuffs(isTimeIgnored, muteSound)
     -- Icons are never hidden, only made transparent: alpha is allowed on protected frames in combat
     for _, icon in ipairs(iconPool) do
         icon:SetAlpha(0)
+
+        if not inCombat then
+            icon:Hide()
+        end
     end
 
     local numMissing = #missingSpells
@@ -168,6 +172,9 @@ local function CheckBuffs(isTimeIgnored, muteSound)
 
             local icon = iconPool[i]
             if icon then
+                if not inCombat then
+                    icon:Show()
+                end
                 icon:SetAlpha(1)
                 icon.texture:SetTexture(GetSpellTexture(spellId))
                 local clickSpellID = GetClickSpellID(spellId)
