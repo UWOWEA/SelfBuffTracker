@@ -20,16 +20,45 @@ end
 
 addon.AddSlider = AddSlider
 
-local function AddDropdown(cat, variableKey, name, defaultValue, getValue, setValue, getOptionsList)
+local function AddDropdown(cat, variableKey, name, defaultValue, getValue, setValue, optionsList)
     local setting = Settings.RegisterProxySetting(cat, variableKey, Settings.VarType.String, name, defaultValue, getValue, setValue)
+
     local function GetOptions()
         local container = Settings.CreateControlTextContainer()
-        for _, entry in ipairs(getOptionsList()) do
-            container:Add(entry.value, entry.text)
+        for _, entry in ipairs(optionsList) do
+            if not entry.subcategory then
+                container:Add(entry.value, entry.text)
+            end
         end
         return container:GetData()
     end
-    Settings.CreateDropdown(cat, setting, GetOptions)
+
+    local initializer = Settings.CreateDropdown(cat, setting, GetOptions)
+    local hasSubcategories = false
+    for _, entry in ipairs(optionsList) do
+        if entry.subcategory then
+            hasSubcategories = true
+            break
+        end
+    end
+
+    if hasSubcategories then
+        initializer.customOptionHandler = function(rootDescription)
+            for _, entry in ipairs(optionsList) do
+                if entry.subcategory then
+                    local categoryDescription = rootDescription:CreateButton(entry.text)
+                    for _, option in ipairs(entry.subcategory) do
+                        Settings.CreateDropdownButton(
+                            categoryDescription,
+                            option,
+                            function(data) return setting:GetValue() == data.value end,
+                            function(data) setting:SetValue(data.value) end)
+                    end
+                end
+            end
+        end
+    end
+
     return setting
 end
 
@@ -38,6 +67,11 @@ local function BuildNativeSettingsPanel()
 
     category = Settings.RegisterVerticalLayoutCategory(L.OPTIONS_TITLE)
 
+    local languageOptions = {}
+    for _, entry in ipairs(addon.AvailableLocales) do
+        table.insert(languageOptions, { value = entry.code, text = entry.name })
+    end
+
     AddDropdown(category, "SBT_Language", L.LANGUAGE_LABEL, "auto",
         function() return SelfBuffTrackerDB.locale or "auto" end,
         function(value)
@@ -45,13 +79,7 @@ local function BuildNativeSettingsPanel()
             addon.RefreshLocale()
             print("|cff00ff00[SBT]|r " .. addon.L.RELOAD_HINT)
         end,
-        function()
-            local list = {}
-            for _, entry in ipairs(addon.AvailableLocales) do
-                table.insert(list, { value = entry.code, text = entry.name })
-            end
-            return list
-        end)
+        languageOptions)
 
     AddCheckbox(category, "SBT_SoundEnabled", L.SOUND_ENABLED, true,
         function() return SelfBuffTrackerDB.soundEnabled end,
@@ -87,6 +115,22 @@ local function BuildNativeSettingsPanel()
         function() return SelfBuffTrackerDB.soundReminderInterval end,
         function(value) SelfBuffTrackerDB.soundReminderInterval = value end)
 
+    local soundOptions = {}
+    for _, soundCategory in ipairs(addon.SoundCategories) do
+        local subcategory = {}
+        for _, preset in ipairs(addon.SoundPresets[soundCategory.value] or {}) do
+            table.insert(subcategory, {
+                value = preset.kit,
+                label = preset.label,
+                text = preset.label,
+            })
+        end
+        table.insert(soundOptions, {
+            text = L[soundCategory.labelKey],
+            subcategory = subcategory,
+        })
+    end
+
     AddDropdown(category, "SBT_SoundKit", L.SOUND_LABEL, "RAID_WARNING",
         function() return SelfBuffTrackerDB.soundKit end,
         function(value)
@@ -94,14 +138,7 @@ local function BuildNativeSettingsPanel()
             local kitID = addon.SOUNDKIT[value]
             if kitID then PlaySound(kitID, "Master") end
         end,
-        function()
-            local list = {}
-            for _, preset in ipairs(addon.SoundPresets) do
-                table.insert(list, { value = preset.kit, text = preset.label })
-            end
-            return list
-        end)
-
+        soundOptions)
 
     AddCheckbox(category, "SBT_Debug", L.DEBUG_ENABLED, true,
         function() return SelfBuffTrackerDB.isDebug end,
@@ -126,4 +163,3 @@ function addon.InitOptionsPanel()
         print("|cffff0000[SBT]|r Initialization error: " .. tostring(err))
     end
 end
-

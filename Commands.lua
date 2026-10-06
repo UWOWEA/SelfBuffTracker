@@ -65,17 +65,24 @@ SlashCmdList["SELFBUFFTRACKER"] = function(msg)
 
     elseif cmd == "warning" and args[2] and args[2]:lower() == "list" then
         print("|cff00ff00[SBT] " .. L.CMD_SOUND_LIST_HEADER .. "|r")
-        for _, preset in ipairs(addon.SoundPresets) do
-            print(" - " .. preset.key .. " (" .. preset.label .. ")")
+        for _, soundCategory in ipairs(addon.SoundCategories) do
+            for _, preset in ipairs(addon.SoundPresets[soundCategory.value] or {}) do
+                print(" - " .. (preset.key or preset.kit:lower()) .. " (" .. preset.label .. ")")
+            end
         end
         print("|cffffaa00" .. L.CMD_SOUND_CUSTOM_HINT .. "|r")
 
     elseif cmd == "warning" and args[2] and tonumber(args[2]) == nil then
         local presetKey = args[2]:lower()
         local found
-        for _, preset in ipairs(addon.SoundPresets) do
-            if preset.key == presetKey then
-                found = preset
+        for _, soundCategory in ipairs(addon.SoundCategories) do
+            for _, preset in ipairs(addon.SoundPresets[soundCategory.value] or {}) do
+                if preset.key and preset.key:lower() == presetKey then
+                    found = preset
+                    break
+                end
+            end
+            if found then
                 break
             end
         end
