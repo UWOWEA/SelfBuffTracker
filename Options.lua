@@ -1,5 +1,4 @@
 local addonName, addon = ...
---- @type UI
 local UI = _G["UI"]
 
 local category

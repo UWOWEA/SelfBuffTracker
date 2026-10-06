@@ -24,12 +24,6 @@ Mocks\[Family]\ContainerEditSpells.lua
 Database\Database.lua
 Database\[Family]\RecommendedSpells.lua
 
-UI/Button.lua
-UI/Checkbox.lua
-UI/Dialog.lua
-UI/Frame.lua
-UI/Slider.lua
-
 Variables.lua
 SoundKit.lua
 SpellInfo.lua
