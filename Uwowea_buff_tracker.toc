@@ -15,6 +15,7 @@
 ## Category-zhCN: Uwowea
 ## Category-zhTW: Uwowea
 ## X-Curse-Project-ID: 1703798
+## Dependencies: Uwowea_UI
 
 
 Mocks\Mocks.lua
