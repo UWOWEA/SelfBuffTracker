@@ -20,6 +20,9 @@
 Mocks\Mocks.lua
 Mocks\[Family]\ContainerEditSpells.lua
 
+Database\Database.lua
+Database\[Family]\RecommendedSpells.lua
+
 UI/Button.lua
 UI/Checkbox.lua
 UI/Dialog.lua

@@ -2,10 +2,10 @@ local addonName, addon = ...
 
 addon.Mocks.missingSpells = {
     1126,
-    1126,
-    1126,
-    1126,
-    1126,
+    1459,
+    6673,
+    21562,
+    364342,
     1126,
     1126,
     1126,

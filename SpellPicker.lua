@@ -319,6 +319,21 @@ local function GetSpellbookEntries(buffsOnly)
             end
         end
     end
+
+    if addon.Database.RecommendedSpells then
+        for _, id in ipairs(addon.Database.RecommendedSpells) do
+            local name = C_Spell.GetSpellName(id)
+            if seen[name] then
+                for _, existing in ipairs(entries) do
+                    if existing.name == name then
+                        existing.isRecommended = true
+                        break
+                    end
+                end
+            end
+        end
+    end
+
     if GetCooldownViewerBuffEntries then
         for _, entry in ipairs(GetCooldownViewerBuffEntries()) do
             if seen[entry.name] then
