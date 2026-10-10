@@ -1,22 +1,45 @@
 # SelfBuffTracker
 
-**SelfBuffTracker** is a lightweight, customizable World of Warcraft addon designed to keep track of missing self-buffs (like _Mark of the Wild_, _Well Fed_, flasks, or stances) and alert you before you enter combat without them.
+**SelfBuffTracker** is a lightweight, customizable World of Warcraft addon that
+tracks missing self-buffs, food buffs, flasks, and phials. It displays missing
+effects as clickable icons and can play reminders before and during combat.
 
-***
+## Requirements
 
-## 🌟 Key Features
+- World of Warcraft
+- [Uwowea UI](../UI) installed and enabled as `Uwowea_UI`
 
-*   **Multi-Buff Tracking:** Track as many buffs or spells as you want simultaneously.
-*   **Multi-Flasks Tracking:** Track as many flasks or phials as you want simultaneously.
-*   **Drag & Drop Position:** Easily unlock and move the display frame anywhere on your screen.
-*   **Spellbook & Chat Integration:** Quickly add or remove spells by **Shift-clicking** them directly from your Spellbook or chat links into the command line.
-*   **Audio Alerts:** Plays a clear warning sound when you are missing buffs upon entering combat or at regular intervals.
-*   **Per-Character Profiles:** Each character maintains its own independent list of tracked buffs and settings.
-*   **Minimalist & Clean UI:** Dynamic icon frames that scale and auto-adjust based on how many buffs are currently missing.
+## Features
 
-***
+- **Buff tracking:** Track any number of buffs or spells by spell name, spell
+  link, or from the settings picker.
+- **Flask and phial tracking:** Optionally track flasks and phials separately.
+- **Clickable missing-buff icons:** Missing buffs appear as icons; click an
+  icon to cast the associated spell when possible.
+- **Configurable layout:** Change icon size, spacing, row and column count,
+  screen position, and lock state.
+- **Audio reminders:** Toggle alerts, choose a built-in or bundled sound, set
+  a custom sound file ID, and configure the reminder interval.
+- **Settings UI:** Configure the addon through the native WoW Settings panel.
+- **Localization:** Select the game locale automatically or choose a supported
+  language in settings.
+- **Character profiles:** Settings and tracked effects are stored per
+  character; settings can be copied from another character of the same class.
+- **Spellbook and chat links:** Shift-click a spell link into the chat command
+  line to add or remove it quickly.
 
-## Adding a bundled sound
+## Getting started
+
+1. Open **Settings** from the game menu.
+2. Select **SelfBuffTracker - Settings**, or run `/sbt options`.
+3. Add buffs in the tracked-buffs section. Enable flask tracking and configure
+   tracked flasks in the tracked-flasks section when needed.
+4. Unlock the display to position it, then lock it again.
+
+The addon displays only effects that are currently missing. Configure audio
+alerts and their reminder interval in the Settings panel.
+
+## Bundled sounds
 
 Addon authors can bundle a supported audio file and expose it as a sound preset:
 
@@ -28,8 +51,6 @@ Addon authors can bundle a supported audio file and expose it as a sound preset:
    ```
 
 The preset will appear under **Custom sounds** in the sound settings and can also be selected with `/sbt warning my_alert`.
-
-***
 
 ## Screenshots
 
@@ -46,26 +67,36 @@ The preset will appear under **Custom sounds** in the sound settings and can als
   <img src="docs/images/edit_mode.png" alt="Edit mode - settings" width="45%">
 </p>
 
-***
-
-## 💻 Chat Commands
+## Chat commands
 
 Use `/sbt` or `/buff` in chat to configure the addon:
 
-*   `/sbt add [Spell Link or Name]` – Adds a buff to track _(Tip: Shift-click from your Spellbook!)_
-*   `/sbt remove [Spell Link or Name]` – Removes a buff from tracking
-*   `/sbt list` – Displays all currently tracked buffs in your chat frame
-*   `/sbt sound` – Toggles audio warning alerts ON/OFF
-*   `/sbt size [number]` – Changes the icon size (Default: `50`)
+| Command | Description |
+| --- | --- |
+| `/sbt add [spell link or name]` | Adds a buff to track. |
+| `/sbt remove [spell link or name]` | Removes a tracked buff. |
+| `/sbt list` | Lists tracked buffs in the chat frame. |
+| `/sbt sound` | Toggles audio alerts. |
+| `/sbt size [number]` | Sets the icon size. Valid values are 2 through 300. |
+| `/sbt cols [number]` | Sets the number of icon columns. |
+| `/sbt warning list` | Lists available alert-sound presets. |
+| `/sbt warning [preset]` | Selects an alert-sound preset. |
+| `/sbt warning [sound file ID]` | Plays and uses a custom sound file ID. |
+| `/sbt options` | Opens the Settings panel. |
+| `/sbt config` | Alias for `/sbt options`. |
 
-***
+Run `/sbt` or `/buff` without a supported subcommand to print command help.
 
-## ⚙️ Installation
+## Installation
 
-### Curseforge
-[Curseforge Link](https://www.curseforge.com/wow/addons/uwowea-selfbuftracker)
+### CurseForge
 
-### Manual
-1.  Download the latest release.
-2.  Extract the `SelfBuffTracker` folder into your WoW directory: `World of Warcraft\_retail_\Interface\AddOns\`
-3.  Restart or reload your game UI (`/reload`).
+[SelfBuffTracker on CurseForge](https://www.curseforge.com/wow/addons/uwowea-selfbuftracker)
+
+### Manual installation
+
+1. Download the releases for SelfBuffTracker and its `Uwowea_UI` dependency.
+2. Extract both folders into your WoW `Interface/AddOns` directory.
+3. Ensure the folders are named `Uwowea_buff_tracker` and `Uwowea_UI`.
+4. Enable **Uwowea Library: Buff tracker** and **Uwowea Library: UI** in the
+   AddOns list, then reload the game UI with `/reload`.
