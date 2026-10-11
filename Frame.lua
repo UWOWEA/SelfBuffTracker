@@ -18,8 +18,6 @@ frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
     if event == "ADDON_LOADED" and unit == addonName then
         addon.InitConfig()
 
-        addon.MigrateTrackedSpellsToIDs()
-
         addon.container:ClearAllPoints()
         if SelfBuffTrackerDB.anchorPosition and #SelfBuffTrackerDB.anchorPosition == 5 then
             addon.container:SetPoint(unpack(SelfBuffTrackerDB.anchorPosition))

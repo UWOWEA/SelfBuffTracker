@@ -1,50 +1,6 @@
-local addonName, addon = ...
+local _, addon = ...
 local Core = _G["Core"]
 
-local function MigrateTrackedSpellsToIDs()
-    if not SelfBuffTrackerDB or not SelfBuffTrackerDB.trackedSpells then return end
-
-    local updatedSpells = {}
-    local migratedCount = 0
-
-    for spellInput, enabled in pairs(SelfBuffTrackerDB.trackedSpells) do
-        local spellID = tonumber(spellInput)
-        local targetID = spellID
-
-        if not targetID then
-            local info = Core.Spells:GetInfo(spellInput)
-            if info and info.spellID then
-                targetID = info.spellID
-            end
-        end
-
-        if targetID and C_Spell and C_Spell.GetOverrideSpell then
-            local overrideID = C_Spell.GetOverrideSpell(targetID)
-            if overrideID and overrideID > 0 then
-                targetID = overrideID
-            end
-        end
-
-        if targetID then
-            local keyStr = tostring(targetID)
-            updatedSpells[keyStr] = enabled
-
-            if keyStr ~= tostring(spellInput) then
-                migratedCount = migratedCount + 1
-            end
-        else
-            updatedSpells[spellInput] = enabled
-        end
-    end
-
-    SelfBuffTrackerDB.trackedSpells = updatedSpells
-
-    if SelfBuffTrackerDB.isDebug and migratedCount > 0 then
-        print("|cff00ff00[SBT Debug]|r migrated " .. migratedCount .. " spells to Spell ID.")
-    end
-end
-
-addon.MigrateTrackedSpellsToIDs = MigrateTrackedSpellsToIDs
 
 local function GetSpellDisplayNameAndIcon(spellInput)
     local spellID = tonumber(spellInput)

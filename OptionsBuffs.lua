@@ -136,7 +136,6 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
             row.text:SetText(displayName)
             row.removeButton:SetScript("OnClick", function()
                 SelfBuffTrackerDB.trackedSpells[spell] = nil
-                addon.MigrateTrackedSpellsToIDs()
                 addon.CheckBuffs(false)
                 RefreshSpellList()
             end)
@@ -149,7 +148,6 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
         if text ~= "" then
             SelfBuffTrackerDB.trackedSpells[text] = true
             spellEditBox:SetText("")
-            addon.MigrateTrackedSpellsToIDs()
             addon.CheckBuffs(false)
             RefreshSpellList()
         end

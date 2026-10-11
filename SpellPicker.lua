@@ -505,7 +505,6 @@ local function CreatePickerFrame(parent)
                 end
                 SelfBuffTrackerDB.trackedSpells[keyToSave] = true
 
-                addon.MigrateTrackedSpellsToIDs()
                 if addon.CheckBuffs then
                     addon.CheckBuffs(false)
                 end
