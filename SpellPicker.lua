@@ -1,5 +1,6 @@
 local addonName, addon = ...
 local Core = _G["Core"]
+local UI = _G["UI"]
 
 local function IsBuffSpell(spellID)
     if not spellID then return false end
@@ -401,14 +402,8 @@ local function CreatePickerFrame(parent)
     searchBox:SetPoint("TOPLEFT", frame.InsetBg, "TOPLEFT", 20, -10)
     searchBox:SetPoint("LEFT", frame.InsetBg, "LEFT", 10, 5)
 
-    local buffsOnlyCheck = CreateFrame("CheckButton", "SelfBuffTrackerSpellPickerBuffsOnly", frame, "UICheckButtonTemplate")
+    local buffsOnlyCheck = UI.Widgets:CreateCheckboxButton("SelfBuffTrackerSpellPickerBuffsOnly", frame, addon.L.PICKER_BUFFS_ONLY, true)
     buffsOnlyCheck:SetPoint("LEFT", searchBox, "RIGHT", 4, 0)
-    buffsOnlyCheck:SetSize(22, 22)
-    buffsOnlyCheck:SetChecked(true)
-    local buffsOnlyLabel = buffsOnlyCheck:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    buffsOnlyLabel:SetPoint("LEFT", buffsOnlyCheck, "RIGHT", 2, 1)
-    buffsOnlyLabel:SetText(addon.L.PICKER_BUFFS_ONLY)
-    addon.ApplyFont(buffsOnlyLabel, "highlightSmall")
 
     local hintText = frame:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     hintText:SetPoint("TOP", searchBox, "BOTTOM", 20, -4)
@@ -431,7 +426,7 @@ local function CreatePickerFrame(parent)
         local yOffset = 0
 
         local filter = searchBox:GetText():lower()
-        local entries = GetSpellbookEntries(buffsOnlyCheck:GetChecked())
+        local entries = GetSpellbookEntries(buffsOnlyCheck.checkBox:GetChecked())
 
         local shown = {}
         for _, entry in ipairs(entries) do
@@ -530,7 +525,7 @@ local function CreatePickerFrame(parent)
         RefreshList()
     end)
 
-    buffsOnlyCheck:SetScript("OnClick", RefreshList)
+    buffsOnlyCheck:SetCallback(RefreshList)
     frame:SetScript("OnShow", RefreshList)
     frame.RefreshList = RefreshList
     frame:Hide()

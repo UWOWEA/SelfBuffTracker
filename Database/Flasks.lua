@@ -1,7 +1,30 @@
 local addonName, addon = ...
 local Core = _G["Core"]
 
+---@class SelfBuffTracker.FlaskEntry
+---@field spellID number
+---@field name string
+---@field category string
+---@field gameType Core.GameType.Value
+
 addon.Database.Flasks = {
+-- ========================================================================
+    -- 0. MIDNIGHT (12.x)
+    -- ========================================================================
+    -- Bojové Flasky (Midnight)
+    { spellID = 1235108, name = "Flask of the Magisters", category = "Midnight Combat" },
+    { spellID = 1235110, name = "Flask of the Blood Knights", category = "Midnight Combat" },
+    { spellID = 1235057, name = "Flask of Thalassian Resistance", category = "Midnight Combat" },
+    { spellID = 1235111, name = "Flask of the Shattered Sun", category = "Midnight Combat" },
+
+    -- PvP Flasky (Midnight)
+    { spellID = 1239355, name = "Vicious Thalassian Flask of Honor", category = "Midnight PvP" },
+
+    -- Profesní Phialy (Midnight)
+    { spellID = 1239755, name = "Haranir Phial of Ingenuity", category = "Midnight Crafting" },
+    { spellID = 1236767, name = "Haranir Phial of Finesse", category = "Midnight Crafting" },
+    { spellID = 1236763, name = "Haranir Phial of Perception", category = "Midnight Crafting" },
+
 -- ========================================================================
     -- 1. THE WAR WITHIN (11.x)
     -- ========================================================================
@@ -102,18 +125,43 @@ addon.Database.Flasks = {
     -- ========================================================================
     -- 9. CLASSIC & TBC (1.x - 2.x)
     -- ========================================================================
-    { spellID = 17627, name = "Flask of Distilled Wisdom", category = "Classic/TBC" },
-    { spellID = 17626, name = "Flask of Supreme Power", category = "Classic/TBC" },
-    { spellID = 17628, name = "Flask of the Titans", category = "Classic/TBC" },
-    { spellID = 17629, name = "Flask of Chromatic Resistance", category = "Classic/TBC" },
     { spellID = 28518, name = "Flask of Relentless Assault", category = "TBC" },
     { spellID = 28519, name = "Flask of Mighty Restoration", category = "TBC" },
     { spellID = 28520, name = "Flask of Blinding Light", category = "TBC" },
     { spellID = 28521, name = "Flask of Pure Death", category = "TBC" },
+    { spellID = 17627, name = "Flask of Distilled Wisdom", category = "Classic" },
+    { spellID = 17626, name = "Flask of Supreme Power", category = "Classic" },
+    { spellID = 17628, name = "Flask of the Titans", category = "Classic" },
+    { spellID = 17629, name = "Flask of Chromatic Resistance", category = "Classic" },
+}
+
+local gameTypeByCategory = {
+    ["Midnight Combat"] = Core.GameType.Midnight,
+    ["Midnight PvP"] = Core.GameType.Midnight,
+    ["Midnight Crafting"] = Core.GameType.Midnight,
+    ["TWW Combat"] = Core.GameType.TWW,
+    ["TWW PvP"] = Core.GameType.TWW,
+    ["TWW Crafting"] = Core.GameType.TWW,
+    ["Dragonflight"] = Core.GameType.DF,
+    ["DF Crafting"] = Core.GameType.DF,
+    ["Shadowlands"] = Core.GameType.SL,
+    ["BfA"] = Core.GameType.BFA,
+    ["Legion"] = Core.GameType.Legion,
+    ["WoD"] = Core.GameType.WOD,
+    ["MoP"] = Core.GameType.MOP,
+    ["Cata"] = Core.GameType.CATACLYSM,
+    ["WotLK"] = Core.GameType.WOTLK,
+    ["Classic"] = Core.GameType.CLASSIC,
+    ["TBC"] = Core.GameType.TBC,
 }
 
 for i = #addon.Database.Flasks, 1, -1 do
     local entry = addon.Database.Flasks[i]
+    entry.gameType = gameTypeByCategory[entry.category]
+    if not entry.gameType then
+        error("Flask entry has no game type: " .. entry.name)
+    end
+
     local spellInfo = Core.Spells:GetInfo(entry.spellID)
     if not spellInfo then
         table.remove(addon.Database.Flasks, i)

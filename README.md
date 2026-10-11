@@ -13,7 +13,8 @@ effects as clickable icons and can play reminders before and during combat.
 
 - **Buff tracking:** Track any number of buffs or spells by spell name, spell
   link, or from the settings picker.
-- **Flask and phial tracking:** Optionally track flasks and phials separately.
+- **Flask and phial tracking:** Optionally track flasks and phials separately,
+  with a picker filter for the current expansion.
 - **Clickable missing-buff icons:** Missing buffs appear as icons; click an
   icon to cast the associated spell when possible.
 - **Configurable layout:** Change icon size, spacing, row and column count,

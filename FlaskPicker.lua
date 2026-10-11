@@ -1,9 +1,13 @@
 local _, addon = ...
 local L = addon.L or {}
+local UI = _G["UI"]
+local Core = _G["Core"]
 
 local flaskPickerFrame
 
 local function CreateFlaskPickerFrame(parent)
+    local paddingY = 10
+    local posY = 0
     local frame = CreateFrame("Frame", "SelfBuffTrackerFlaskPickerFrame", parent or UIParent, "BasicFrameTemplateWithInset")
     frame:SetSize(380, 420)
     frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -19,8 +23,20 @@ local function CreateFlaskPickerFrame(parent)
     frame.title:SetPoint("TOPLEFT", frame.TitleBg, "LEFT", 6, 5)
     frame.title:SetText(L.FLASK_PICKER_TITLE or "Select Flask / Phial")
 
+    posY = posY - paddingY
+
+    local currentExpansionOnlyCheck = UI.Widgets:CreateCheckboxButton(
+        "SelfBuffTrackerFlaskPickerCurrentExpansionOnly",
+        frame,
+        L.FLASK_PICKER_CURRENT_EXPANSION_ONLY or "Current expansion only",
+        false
+    )
+    currentExpansionOnlyCheck:SetPoint("TOPLEFT", frame.InsetBg, "TOPLEFT", 2, posY)
+
+    posY = posY - currentExpansionOnlyCheck:GetHeight() - paddingY
+
     local scrollFrame = CreateFrame("ScrollFrame", "SelfBuffTrackerFlaskPickerScrollFrame", frame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", frame.InsetBg, "TOPLEFT", 6, -6)
+    scrollFrame:SetPoint("TOPLEFT", frame.InsetBg, "TOPLEFT", 6, posY)
     scrollFrame:SetPoint("BOTTOMRIGHT", frame.InsetBg, "BOTTOMRIGHT", -28, 6)
 
     local scrollChild = CreateFrame("Frame", nil, scrollFrame)
@@ -34,7 +50,16 @@ local function CreateFlaskPickerFrame(parent)
         for _, row in ipairs(rows) do row:Hide() end
 
         local yOffset = 0
-        for i, entry in ipairs(addon.Database.Flasks) do
+        local currentGameType = Core.GameInfo and Core.GameInfo.type
+        local currentExpansionOnly = currentExpansionOnlyCheck.checkBox:GetChecked()
+        local filteredEntries = {}
+        for _, entry in ipairs(addon.Database.Flasks) do
+            if not currentExpansionOnly or not currentGameType or entry.gameType == currentGameType then
+                table.insert(filteredEntries, entry)
+            end
+        end
+
+        for i, entry in ipairs(filteredEntries) do
             local row = rows[i]
             if not row then
                 row = CreateFrame("Button", nil, scrollChild, "BackdropTemplate")
@@ -103,6 +128,8 @@ local function CreateFlaskPickerFrame(parent)
 
         scrollChild:SetSize(scrollFrame:GetWidth(), math.abs(yOffset))
     end
+
+    currentExpansionOnlyCheck:SetCallback(RefreshFlaskPickerList)
 
     frame:SetScript("OnShow", RefreshFlaskPickerList)
     frame:Hide()
