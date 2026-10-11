@@ -1,5 +1,5 @@
 local addonName, addon = ...
-
+local Core = _G["Core"]
 addon.auraIDCache = addon.auraIDCache or {}
 
 -- duration == 0 means the aura has no expiration
@@ -39,11 +39,10 @@ local function ScanAurasByFilter(filter)
                     local lowerName = aura.name:lower()
                     local entry = addon.MakeAuraCacheEntry(aura)
                     addon.auraIDCache[lowerName] = entry
-                    if addon.GetSpellInfo then
-                        local info = addon.GetSpellInfo(aura.name)
-                        if info and info.spellID then
-                            addon.auraIDCache[tostring(info.spellID)] = entry
-                        end
+
+                    local info = Core.Spells:GetInfo(aura.name)
+                    if info and info.spellID then
+                        addon.auraIDCache[tostring(info.spellID)] = entry
                     end
                 end
             end
@@ -75,7 +74,7 @@ addon.RefreshTrackedAurasInCombat = function()
                 if ok and aura then
                     local entry = addon.MakeAuraCacheEntry(aura, spellID)
                     addon.auraIDCache[tostring(spellID)] = entry
-                    local info = addon.GetSpellInfo and addon.GetSpellInfo(spellID)
+                    local info = Core.Spells:GetInfo(spellID)
                     if info and info.name then
                         addon.auraIDCache[info.name:lower()] = entry
                     end

@@ -1,5 +1,5 @@
 local addonName, addon = ...
-
+local Core = _G["Core"]
 local iconPool = {}
 
 ---@param spellId number
@@ -73,7 +73,7 @@ local function IsSpellOnCooldown(icon, spellId)
 end
 
 local function GetSpellTexture(spellName)
-    local spellInfo = addon.GetSpellInfo(spellName)
+    local spellInfo = Core.Spells:GetInfo(spellName)
     if spellInfo and spellInfo.iconID then
         return spellInfo.iconID
     end
@@ -82,11 +82,11 @@ end
 
 local function GetClickSpellID(trackedSpellID)
     local spellID = tonumber(trackedSpellID) or trackedSpellID
-    local baseSpellID = addon.GetBaseSpell and addon.GetBaseSpell(spellID)
+    local baseSpellID = Core.Spells:GetBaseSpell(spellID)
     spellID = baseSpellID or spellID
 
     local overrideID = C_Spell and C_Spell.GetOverrideSpell
-        and C_Spell.GetOverrideSpell(spellID)
+        and Core.Spells:GetOverrideSpell(spellID)
     return overrideID and overrideID > 0 and overrideID or spellID
 end
 

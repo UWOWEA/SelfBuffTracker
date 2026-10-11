@@ -67,7 +67,7 @@ local function CreateTrackedBuffsSubcategory(parentCategory)
     spellbookButton:SetPoint("LEFT", addButton, "RIGHT", 8, 0)
     spellbookButton:SetScript("OnClick", function()
         if addon.ToggleSpellPicker then
-            addon.ToggleSpellPicker()
+            addon.ToggleSpellPicker(panel)
         end
     end)
 

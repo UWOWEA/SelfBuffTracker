@@ -9,7 +9,7 @@ effects as clickable icons and can play reminders before and during combat.
 - World of Warcraft
 - [Uwowea UI](../UI) installed and enabled as `Uwowea_UI`
 
-## Features
+## 🌟 Features
 
 - **Buff tracking:** Track any number of buffs or spells by spell name, spell
   link, or from the settings picker.
@@ -67,7 +67,7 @@ The preset will appear under **Custom sounds** in the sound settings and can als
   <img src="docs/images/edit_mode.png" alt="Edit mode - settings" width="45%">
 </p>
 
-## Chat commands
+## 💻 Chat commands
 
 Use `/sbt` or `/buff` in chat to configure the addon:
 
@@ -87,7 +87,7 @@ Use `/sbt` or `/buff` in chat to configure the addon:
 
 Run `/sbt` or `/buff` without a supported subcommand to print command help.
 
-## Installation
+## ⚙️ Installation
 
 ### CurseForge
 

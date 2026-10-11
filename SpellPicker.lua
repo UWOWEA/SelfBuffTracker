@@ -1,7 +1,9 @@
 local addonName, addon = ...
+local Core = _G["Core"]
 
 local function IsBuffSpell(spellID)
     if not spellID then return false end
+    spellID = Core.Spells:NormalizeSpellID(spellID)
 
     -- Retail
     if C_Spell and C_Spell.IsSpellHelpful then
@@ -20,6 +22,7 @@ end
 
 local function IsHarmfulSpellSafe(spellID)
     if not spellID then return false end
+    spellID = Core.Spells:NormalizeSpellID(spellID)
 
     if C_Spell and C_Spell.IsSpellHarmful then
         local ok, result = pcall(C_Spell.IsSpellHarmful, spellID)
@@ -36,6 +39,7 @@ end
 
 local function IsSpellKnownSafe(spellID)
     if not spellID then return true end
+    spellID = Core.Spells:NormalizeSpellID(spellID)
 
     if C_SpellBook and C_SpellBook.IsSpellKnown then
         local ok, result = pcall(C_SpellBook.IsSpellKnown, spellID)
@@ -62,6 +66,7 @@ end
 
 local function IsSpellCurrentlyAvailable(spellID)
     if not spellID then return true end
+    spellID = Core.Spells:NormalizeSpellID(spellID)
 
     if not IsSpellKnownSafe(spellID) then return false end
 
@@ -87,9 +92,10 @@ local function IsSpellCurrentlyAvailable(spellID)
 end
 
 local function GetSpellNameAndIcon(spellID)
-    if not spellID or not addon.GetSpellInfo then return nil, nil end
+    if not spellID then return nil, nil end
+    spellID = Core.Spells:NormalizeSpellID(spellID)
 
-    local ok, a, _, c = pcall(addon.GetSpellInfo, spellID)
+    local ok, a, _, c = Core.Spells:GetInfo(spellID)
     if not ok or not a then return nil, nil end
 
     if type(a) == "table" then
@@ -170,7 +176,6 @@ local ExcludedUtilitySpellNames = {
     ["Prowl"] = true,
     ["Anomaly Detection Mark I"] = true,
     ["Recuperate"] = true,
-    ["Dreamwalk"] = true,
     ["Bull Rush"] = true,
     ["Remove Corruption"] = true,
     ["Stampeding Roar"] = true,
@@ -219,13 +224,16 @@ local function GetSpellbookEntries(buffsOnly)
                     local itemOk, itemInfo = pcall(C_SpellBook.GetSpellBookItemInfo, index, Enum.SpellBookSpellBank.Player)
                     if itemOk and itemInfo and itemInfo.name and not itemInfo.isPassive and itemInfo.itemType == Enum.SpellBookItemType.Spell
                         and not seen[itemInfo.name] and not ExcludedUtilitySpellNames[itemInfo.name] then
-                        local spellID = itemInfo.spellID or itemInfo.actionID
-                        local spellOverrides = addon.GetSpellOverrides
-                            and addon.GetSpellOverrides(spellID)
+                        local spellID = Core.Spells:NormalizeSpellID(itemInfo.spellID or itemInfo.actionID)
+                        local spellInfo = Core.Spells:GetInfo(spellID)
+                        local spellOverrides = spellInfo and spellInfo:GetOverrides()
                         local trackedAuraID = spellOverrides and spellOverrides[1]
                         local tracksMappedAura = trackedAuraID ~= nil
 
-                        if not shapeshiftFormIDs[spellID] and not C_Spell.IsAutoAttackSpell(spellID) and not C_Spell.IsSpellDisabled(spellID) and not C_Spell.IsConsumableSpell(spellID) then
+                        if spellInfo and not shapeshiftFormIDs[spellID] and not spellInfo:IsAutoAttackSpell()
+                            and not spellInfo:IsSpellDisabled()
+                            and not spellInfo:IsTeleport()
+                            and not spellInfo:IsConsumableSpell() then
                             local isBuff = tracksMappedAura or IsBuffSpell(spellID)
                             local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
                             if isRelevant and (not buffsOnly or isBuff) and IsSpellCurrentlyAvailable(spellID) then
@@ -238,7 +246,7 @@ local function GetSpellbookEntries(buffsOnly)
                                     spellID = spellID,
                                     trackedAuraID = trackedAuraID,
                                     isRecommended = tracksMappedAura,
-                                    isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
+                                    isHelpfulSpell = spellInfo:IsSpellHelpful(),
                                 })
                             end
                         end
@@ -271,12 +279,12 @@ local function GetSpellbookEntries(buffsOnly)
                             if GetSpellBookItemInfo then
                                 local itemType, id = GetSpellBookItemInfo(spellIndex, bookType)
                                 if itemType == "SPELL" or itemType == "FUTURESPELL" then
-                                    spellID = id
+                                    spellID = Core.Spells:NormalizeSpellID(id)
                                 end
                             end
 
-                            if not spellID and addon.GetSpellInfo then
-                                local info = addon.GetSpellInfo(spellName)
+                            if not spellID then
+                                local info = Core.Spells:GetInfo(spellName)
                                 if info and info.spellID then
                                     spellID = info.spellID
                                 end
@@ -288,8 +296,8 @@ local function GetSpellbookEntries(buffsOnly)
                             end
 
                             if not (spellID and shapeshiftFormIDs[spellID]) then
-                                local spellOverrides = addon.GetSpellOverrides
-                                    and addon.GetSpellOverrides(spellID)
+                                local spellInfo = Core.Spells:GetInfo(spellID)
+                                local spellOverrides = spellInfo:GetOverrides(spellID)
                                 local trackedAuraID = spellOverrides and spellOverrides[1]
                                 local tracksMappedAura = trackedAuraID ~= nil
                                 local isBuff = tracksMappedAura or IsBuffSpell(spellID)
@@ -310,7 +318,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         spellID = spellID,
                                         trackedAuraID = trackedAuraID,
                                         isRecommended = true,
-                                        isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
+                                        isHelpfulSpell = spellInfo:IsSpellHelpful(),
                                     })
                                 elseif isRelevant and (not buffsOnly or isBuff) then
                                     seen[spellName] = true
@@ -322,7 +330,7 @@ local function GetSpellbookEntries(buffsOnly)
                                         isBuff = isBuff,
                                         trackedAuraID = trackedAuraID,
                                         isRecommended = tracksMappedAura,
-                                        isHelpfulSpell = C_Spell.IsSpellHelpful(spellID),
+                                        isHelpfulSpell = spellInfo:IsSpellHelpful(),
                                     })
                                 end
                             end
@@ -372,8 +380,8 @@ addon.GetSpellbookEntries = GetSpellbookEntries
 
 local pickerFrame
 
-local function CreatePickerFrame()
-    local frame = CreateFrame("Frame", "SelfBuffTrackerSpellPicker", UIParent, "BasicFrameTemplateWithInset")
+local function CreatePickerFrame(parent)
+    local frame = CreateFrame("Frame", "SelfBuffTrackerSpellPicker", parent or UIParent, "BasicFrameTemplateWithInset")
     frame:SetSize(380, 420)
     frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     frame:SetFrameStrata("DIALOG")
@@ -529,9 +537,10 @@ local function CreatePickerFrame()
     return frame
 end
 
-function addon.ToggleSpellPicker()
+---@param parent? Frame
+function addon.ToggleSpellPicker(parent)
     if not pickerFrame then
-        pickerFrame = CreatePickerFrame()
+        pickerFrame = CreatePickerFrame(parent)
     end
 
     if pickerFrame:IsShown() then

@@ -1,4 +1,5 @@
 local addonName, addon = ...
+local Core = _G["Core"]
 
 local function MigrateTrackedSpellsToIDs()
     if not SelfBuffTrackerDB or not SelfBuffTrackerDB.trackedSpells then return end
@@ -10,8 +11,8 @@ local function MigrateTrackedSpellsToIDs()
         local spellID = tonumber(spellInput)
         local targetID = spellID
 
-        if not targetID and addon.GetSpellInfo then
-            local info = addon.GetSpellInfo(spellInput)
+        if not targetID then
+            local info = Core.Spells:GetInfo(spellInput)
             if info and info.spellID then
                 targetID = info.spellID
             end
@@ -48,7 +49,7 @@ addon.MigrateTrackedSpellsToIDs = MigrateTrackedSpellsToIDs
 local function GetSpellDisplayNameAndIcon(spellInput)
     local spellID = tonumber(spellInput)
 
-    if spellID and addon.GetSpellInfo then
+    if spellID then
         local targetID = spellID
         if C_Spell.GetOverrideSpell then
             local overrideID = C_Spell.GetOverrideSpell(spellID)
@@ -57,17 +58,15 @@ local function GetSpellDisplayNameAndIcon(spellInput)
             end
         end
 
-        local info = addon.GetSpellInfo(targetID) or addon.GetSpellInfo(spellID)
+        local info = Core.Spells:GetInfo(targetID) or Core.Spells:GetInfo(spellID)
         if info then
             return info.name or ("Spell " .. spellInput), info.iconID
         end
     end
 
-    if addon.GetSpellInfo then
-        local info = addon.GetSpellInfo(spellInput)
-        if info then
-            return info.name or spellInput, info.iconID
-        end
+    local info = Core.Spells:GetInfo(spellInput)
+    if info then
+        return info.name or spellInput, info.iconID
     end
 
     if spellID and C_Item and C_Item.GetItemInfo then
@@ -77,10 +76,10 @@ local function GetSpellDisplayNameAndIcon(spellInput)
         end
     end
 
-    if addon.ALL_GAME_FLASKS then
-        for _, entry in ipairs(addon.ALL_GAME_FLASKS) do
+    if addon.Database.Flasks then
+        for _, entry in ipairs(addon.Database.Flasks) do
             if tostring(entry.spellID) == tostring(spellInput) then
-                local spellInfo = addon.GetSpellInfo(entry.spellID)
+                local spellInfo = Core.Spells:GetInfo(entry.spellID)
                 if spellInfo then
                     return spellInfo.name, spellInfo.iconID or "Interface\\Icons\\INV_Misc_QuestionMark"
                 end

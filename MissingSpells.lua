@@ -1,4 +1,5 @@
 local addonName, addon = ...
+local Core = _G["Core"]
 
 addon.activeBuffTimers = addon.activeBuffTimers or {}
 addon.auraIDCache = addon.auraIDCache or {}
@@ -12,12 +13,10 @@ local function IsAuraActiveOnPlayer(spellInput)
     local auraCache = addon.auraIDCache or {}
     local inCombat = InCombatLockdown()
 
-    if addon.GetSpellInfo then
-        local info = addon.GetSpellInfo(spellID or spellInput)
-        if info then
-            officialName = info.name and info.name:lower()
-            spellID = spellID or info.spellID
-        end
+    local info = Core.Spells:GetInfo(spellID or spellInput)
+    if info then
+        officialName = info.name and info.name:lower()
+        spellID = spellID or info.spellID
     end
 
     if inCombat then

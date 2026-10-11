@@ -1,4 +1,7 @@
 local addonName, addon = ...
+
+local Core = _G["Core"]
+
 local frame = CreateFrame("Frame", "SelfBuffTrackerFrame", UIParent)
 
 for _, event in ipairs(addon.events) do
@@ -46,11 +49,9 @@ frame:SetScript("OnEvent", function(self, event, unit, lineID, spellID)
                 local expTime = GetTime() + 30
                 addon.activeBuffTimers[tostring(spellID)] = expTime
 
-                if addon.GetSpellInfo then
-                    local info = addon.GetSpellInfo(spellID)
-                    if info and info.name then
-                        addon.activeBuffTimers[info.name:lower()] = expTime
-                    end
+                local info = Core.Spells:GetInfo(spellID)
+                if info and info.name then
+                    addon.activeBuffTimers[info.name:lower()] = expTime
                 end
             end
         end

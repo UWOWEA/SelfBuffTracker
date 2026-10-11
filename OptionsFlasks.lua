@@ -29,7 +29,7 @@ local function CreateTrackedFlasksSubcategory(parentCategory)
     flaskPickerButton:SetPoint("LEFT", addButton, "RIGHT", 8, 0)
     flaskPickerButton:SetScript("OnClick", function()
         if addon.ToggleFlaskPicker then
-            addon.ToggleFlaskPicker()
+            addon.ToggleFlaskPicker(panel)
         end
     end)
 
