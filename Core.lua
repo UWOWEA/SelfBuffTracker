@@ -112,7 +112,9 @@ local function CheckBuffs(isTimeIgnored, muteSound)
 
     if not SelfBuffTrackerDB then return end
 
-    if UnitIsDeadOrGhost("player") or UnitOnTaxi("player") then
+    local player = Core.Unit.Player
+
+    if player:UnitIsDeadOrGhost() or player:UnitOnTaxi() then
         addon.container:Hide()
         return
     end
