@@ -2,108 +2,12 @@ local addonName, addon = ...
 local Core = _G["Core"]
 local UI = _G["UI"]
 
-local function IsBuffSpell(spellID)
-    if not spellID then return false end
-    spellID = Core.Spells:NormalizeSpellID(spellID)
-
-    -- Retail
-    if C_Spell and C_Spell.IsSpellHelpful then
-        local ok, result = pcall(C_Spell.IsSpellHelpful, spellID)
-        if ok then return result end
-    end
-
-    -- Cata / Wrath
-    if IsHelpfulSpell then
-        local ok, result = pcall(IsHelpfulSpell, spellID)
-        if ok then return result end
-    end
-
-    return false
-end
-
-local function IsHarmfulSpellSafe(spellID)
-    if not spellID then return false end
-    spellID = Core.Spells:NormalizeSpellID(spellID)
-
-    if C_Spell and C_Spell.IsSpellHarmful then
-        local ok, result = pcall(C_Spell.IsSpellHarmful, spellID)
-        if ok then return result end
-    end
-
-    if IsHarmfulSpell then
-        local ok, result = pcall(IsHarmfulSpell, spellID)
-        if ok then return result end
-    end
-
-    return false
-end
-
-local function IsSpellKnownSafe(spellID)
-    if not spellID then return true end
-    spellID = Core.Spells:NormalizeSpellID(spellID)
-
-    if C_SpellBook and C_SpellBook.IsSpellKnown then
-        local ok, result = pcall(C_SpellBook.IsSpellKnown, spellID)
-        if ok then return result end
-    end
-
-    if C_SpellBook and C_SpellBook.IsSpellKnownOrOverridesKnown then
-        local ok, result = pcall(C_SpellBook.IsSpellKnownOrOverridesKnown, spellID)
-        if ok then return result end
-    end
-
-    if IsSpellKnownOrOverridesKnown then
-        local ok, result = pcall(IsSpellKnownOrOverridesKnown, spellID)
-        if ok then return result end
-    end
-
-    if IsPlayerSpell then
-        local ok, result = pcall(IsPlayerSpell, spellID)
-        if ok then return result end
-    end
-
-    return true
-end
-
-local function IsSpellCurrentlyAvailable(spellID)
-    if not spellID then return true end
-    spellID = Core.Spells:NormalizeSpellID(spellID)
-
-    if not IsSpellKnownSafe(spellID) then return false end
-
-    if C_Spell and C_Spell.IsSpellDisabled then
-        local ok, isDisabled = pcall(C_Spell.IsSpellDisabled, spellID)
-        if ok and isDisabled then return false end
-    elseif IsSpellDisabled then
-        local ok, isDisabled = pcall(IsSpellDisabled, spellID)
-        if ok and isDisabled then return false end
-    end
-
-    if C_Spell and C_Spell.IsSpellUsable then
-        local ok, isUsable, insufficientResources = pcall(C_Spell.IsSpellUsable, spellID)
-        if ok then return isUsable or insufficientResources end
-    end
-
-    if IsUsableSpell then
-        local ok, isUsable, insufficientResources = pcall(IsUsableSpell, spellID)
-        if ok then return isUsable or insufficientResources end
-    end
-
-    return true
-end
-
 local function GetSpellNameAndIcon(spellID)
     if not spellID then return nil, nil end
     spellID = Core.Spells:NormalizeSpellID(spellID)
 
-    local ok, a, _, c = Core.Spells:GetInfo(spellID)
-    if not ok or not a then return nil, nil end
-
-    if type(a) == "table" then
-        return a.name, a.iconID
-    end
-
-    return a, c
+    local info = Core.Spells:GetInfo(spellID)
+    return info and info.name, info and (info.iconID or info.icon)
 end
 
 local function GetCooldownViewerBuffEntries()
@@ -144,24 +48,6 @@ local function GetCooldownViewerBuffEntries()
     end
 
     return entries
-end
-
-local function GetShapeshiftFormSpellIDs()
-    local ids = {}
-
-    if not GetNumShapeshiftForms then return ids end
-
-    local ok, numForms = pcall(GetNumShapeshiftForms)
-    if not ok or not numForms then return ids end
-
-    for i = 1, numForms do
-        local formOk, _, _, _, spellID = pcall(GetShapeshiftFormInfo, i)
-        if formOk and spellID then
-            ids[spellID] = true
-        end
-    end
-
-    return ids
 end
 
 local ExcludedUtilitySpellNames = {
@@ -211,140 +97,49 @@ local ExcludedSkillLineNames = {
 local function GetSpellbookEntries(buffsOnly)
     local entries = {}
     local seen = {}
-    local shapeshiftFormIDs = GetShapeshiftFormSpellIDs()
+    local shapeshiftFormIDs = Core.Spells:GetShapeshiftFormSpellIDs()
 
-    if C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines and Enum and Enum.SpellBookSpellBank then
-        local numSkillLines = C_SpellBook.GetNumSpellBookSkillLines()
-        for skillLineIndex = 1, numSkillLines do
-            local ok, skillLineInfo = pcall(C_SpellBook.GetSpellBookSkillLineInfo, skillLineIndex)
-            if ok and skillLineInfo and not skillLineInfo.shouldHide and not skillLineInfo.isGuild
-                and not ExcludedSkillLineNames[skillLineInfo.name] then
-                local offset = skillLineInfo.itemIndexOffset
-                for i = 1, skillLineInfo.numSpellBookItems do
-                    local index = offset + i
-                    local itemOk, itemInfo = pcall(C_SpellBook.GetSpellBookItemInfo, index, Enum.SpellBookSpellBank.Player)
-                    if itemOk and itemInfo and itemInfo.name and not itemInfo.isPassive and itemInfo.itemType == Enum.SpellBookItemType.Spell
-                        and not seen[itemInfo.name] and not ExcludedUtilitySpellNames[itemInfo.name] then
-                        local spellID = Core.Spells:NormalizeSpellID(itemInfo.spellID or itemInfo.actionID)
-                        local spellInfo = Core.Spells:GetInfo(spellID)
-                        local spellOverrides = spellInfo and spellInfo:GetOverrides()
-                        local trackedAuraID = spellOverrides and spellOverrides[1]
-                        local tracksMappedAura = trackedAuraID ~= nil
+    for _, bookEntry in ipairs(Core.Spells:GetSpellbookEntries()) do
+        local spellName = bookEntry.name
+        local spellID = Core.Spells:NormalizeSpellID(bookEntry.spellID)
+        local spellInfo = Core.Spells:GetInfo(spellID or spellName)
+        spellID = spellID or (spellInfo and spellInfo.spellID)
 
-                        if spellInfo and not shapeshiftFormIDs[spellID] and not spellInfo:IsAutoAttackSpell()
-                            and not spellInfo:IsSpellDisabled()
-                            and not spellInfo:IsTeleport()
-                            and not spellInfo:IsConsumableSpell() then
-                            local isBuff = tracksMappedAura or IsBuffSpell(spellID)
-                            local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
-                            if isRelevant and (not buffsOnly or isBuff) and IsSpellCurrentlyAvailable(spellID) then
-                                seen[itemInfo.name] = true
-                                table.insert(entries, {
-                                    name = itemInfo.name,
-                                    iconID = itemInfo.iconID,
-                                    category = skillLineInfo.name,
-                                    isBuff = isBuff,
-                                    spellID = spellID,
-                                    trackedAuraID = trackedAuraID,
-                                    isRecommended = tracksMappedAura,
-                                    isHelpfulSpell = spellInfo:IsSpellHelpful(),
-                                })
-                            end
-                        end
-                    end
-                end
+        if spellName and not seen[spellName] and not ExcludedUtilitySpellNames[spellName]
+            and not ExcludedSkillLineNames[bookEntry.category] and spellInfo
+            and not shapeshiftFormIDs[spellID] and not spellInfo:IsAutoAttackSpell()
+            and not spellInfo:IsSpellDisabled() and not spellInfo:IsTeleport()
+            and not spellInfo:IsConsumableSpell() then
+            local overrides = spellInfo:GetOverrides()
+            local trackedAuraID = overrides[1]
+            local isBuff = trackedAuraID ~= nil or spellInfo:IsHelpful()
+            local isRelevant = isBuff or spellInfo:IsHarmful()
+
+            if not isRelevant and spellID and bookEntry.isLegacy then
+                isRelevant = true
             end
-        end
-    elseif GetNumSpellTabs then
-        local numTabs = GetNumSpellTabs()
-        local bookType = BOOKTYPE_SPELL or "spell"
 
-        for tabIndex = 1, numTabs do
-            local name, texture, offset, numSpells, isGuild, offSpecID = GetSpellTabInfo(tabIndex)
-            if name and not ExcludedSkillLineNames[name] then
-                for i = 1, numSpells do
-                    local spellIndex = offset + i
-                    local isPassive = false
-
-                    if IsPassiveSpell then
-                        isPassive = IsPassiveSpell(spellIndex, bookType)
-                    end
-                    if not isPassive then
-                        local spellName, spellSubName = GetSpellBookItemName(spellIndex, bookType)
-                        local iconID = GetSpellBookItemTexture(spellIndex, bookType)
-
-                        if spellName and not seen[spellName] and not ExcludedUtilitySpellNames[spellName] then
-                            local link = GetSpellBookItemLink and GetSpellBookItemLink(spellIndex, bookType)
-                            local spellID = nil
-
-                            if GetSpellBookItemInfo then
-                                local itemType, id = GetSpellBookItemInfo(spellIndex, bookType)
-                                if itemType == "SPELL" or itemType == "FUTURESPELL" then
-                                    spellID = Core.Spells:NormalizeSpellID(id)
-                                end
-                            end
-
-                            if not spellID then
-                                local info = Core.Spells:GetInfo(spellName)
-                                if info and info.spellID then
-                                    spellID = info.spellID
-                                end
-                            end
-
-                            if not spellID and GetSpellBookItemLink then
-                                local link = GetSpellBookItemLink(spellIndex, bookType)
-                                spellID = link and tonumber(link:match("spell:(%d+)"))
-                            end
-
-                            if not (spellID and shapeshiftFormIDs[spellID]) then
-                                local spellInfo = Core.Spells:GetInfo(spellID)
-                                local spellOverrides = spellInfo:GetOverrides(spellID)
-                                local trackedAuraID = spellOverrides and spellOverrides[1]
-                                local tracksMappedAura = trackedAuraID ~= nil
-                                local isBuff = tracksMappedAura or IsBuffSpell(spellID)
-                                local isRelevant = isBuff or IsHarmfulSpellSafe(spellID)
-
-                                if not isRelevant and spellID then
-                                    isBuff = false
-                                    isRelevant = true
-                                end
-
-                                if isRelevant and (isBuff and buffsOnly) then
-                                    seen[spellName] = true
-                                    table.insert(entries, {
-                                        name = spellName,
-                                        iconID = iconID,
-                                        category = name,
-                                        isBuff = isBuff,
-                                        spellID = spellID,
-                                        trackedAuraID = trackedAuraID,
-                                        isRecommended = true,
-                                        isHelpfulSpell = spellInfo:IsSpellHelpful(),
-                                    })
-                                elseif isRelevant and (not buffsOnly or isBuff) then
-                                    seen[spellName] = true
-                                    table.insert(entries, {
-                                        name = spellName,
-                                        iconID = iconID,
-                                        category = name,
-                                        spellID = spellID,
-                                        isBuff = isBuff,
-                                        trackedAuraID = trackedAuraID,
-                                        isRecommended = tracksMappedAura,
-                                        isHelpfulSpell = spellInfo:IsSpellHelpful(),
-                                    })
-                                end
-                            end
-                        end
-                    end
-                end
+            if isRelevant and (not buffsOnly or isBuff)
+                and Core.Spells:IsAvailable(spellID or spellName) then
+                seen[spellName] = true
+                table.insert(entries, {
+                    name = spellName,
+                    iconID = bookEntry.iconID or spellInfo.iconID or spellInfo.icon,
+                    category = bookEntry.category,
+                    isBuff = isBuff,
+                    spellID = spellID,
+                    trackedAuraID = trackedAuraID,
+                    isRecommended = trackedAuraID ~= nil,
+                    isHelpfulSpell = spellInfo:IsHelpful(),
+                })
             end
         end
     end
 
     if addon.Database.RecommendedSpells then
         for _, id in ipairs(addon.Database.RecommendedSpells) do
-            local name = C_Spell.GetSpellName(id)
+            local info = Core.Spells:GetInfo(id)
+            local name = info and info.name
             if seen[name] then
                 for _, existing in ipairs(entries) do
                     if existing.name == name then
@@ -492,8 +287,8 @@ local function CreatePickerFrame(parent)
             row:SetScript("OnClick", function()
                 local idToSave = entry.trackedAuraID or entry.spellID
 
-                if not entry.trackedAuraID and idToSave and C_Spell and C_Spell.GetOverrideSpell then
-                    local overrideID = C_Spell.GetOverrideSpell(idToSave)
+                if not entry.trackedAuraID and idToSave then
+                    local overrideID = Core.Spells:GetOverrideSpell(idToSave)
                     if overrideID and overrideID > 0 then
                         idToSave = overrideID
                     end

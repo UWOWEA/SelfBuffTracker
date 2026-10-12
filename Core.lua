@@ -39,20 +39,21 @@ end
 local function UpdateIconCooldown(icon, spellId)
     local cd = icon.cooldown
     local id = tonumber(spellId)
-    if not (cd and id and C_Spell) then
+    local spellInfo = id and Core.Spells:GetInfo(id)
+    if not (cd and spellInfo) then
         if cd then cd:Clear() end
         return
     end
 
-    if C_Spell.GetSpellCooldownDuration and cd.SetCooldownFromDurationObject then
-        local ok, duration = pcall(C_Spell.GetSpellCooldownDuration, id)
+    if type(spellInfo.GetSpellCooldownDuration) == "function" and cd.SetCooldownFromDurationObject then
+        local ok, duration = pcall(spellInfo.GetSpellCooldownDuration, spellInfo)
         if ok and duration then
             cd:SetCooldownFromDurationObject(duration)
             return
         end
-    elseif C_Spell.GetSpellCooldown then
-        local info = C_Spell.GetSpellCooldown(id)
-        if info and info.duration and info.duration > 1.5 then
+    elseif type(spellInfo.GetSpellCooldown) == "function" then
+        local ok, info = pcall(spellInfo.GetSpellCooldown, spellInfo)
+        if ok and info and info.duration and info.duration > 1.5 then
             cd:SetCooldown(info.startTime, info.duration)
             return
         end
@@ -63,8 +64,9 @@ end
 -- Falls back to the cooldown swipe visibility when API values are secret in combat
 local function IsSpellOnCooldown(icon, spellId)
     local id = tonumber(spellId)
-    if id and C_Spell and C_Spell.GetSpellCooldown then
-        local ok, info = pcall(C_Spell.GetSpellCooldown, id)
+    local spellInfo = id and Core.Spells:GetInfo(id)
+    if spellInfo and type(spellInfo.GetSpellCooldown) == "function" then
+        local ok, info = pcall(spellInfo.GetSpellCooldown, spellInfo)
         if ok and info and not (issecretvalue and (issecretvalue(info.duration) or issecretvalue(info.startTime))) then
             return (info.duration or 0) > 1.5 and (info.startTime + info.duration) > GetTime()
         end
@@ -74,8 +76,8 @@ end
 
 local function GetSpellTexture(spellName)
     local spellInfo = Core.Spells:GetInfo(spellName)
-    if spellInfo and spellInfo.iconID then
-        return spellInfo.iconID
+    if spellInfo then
+        return spellInfo.iconID or spellInfo.icon or "Interface\\Icons\\INV_Misc_QuestionMark"
     end
     return "Interface\\Icons\\INV_Misc_QuestionMark"
 end
@@ -85,8 +87,7 @@ local function GetClickSpellID(trackedSpellID)
     local baseSpellID = Core.Spells:GetBaseSpell(spellID)
     spellID = baseSpellID or spellID
 
-    local overrideID = C_Spell and C_Spell.GetOverrideSpell
-        and Core.Spells:GetOverrideSpell(spellID)
+    local overrideID = Core.Spells:GetOverrideSpell(spellID)
     return overrideID and overrideID > 0 and overrideID or spellID
 end
 

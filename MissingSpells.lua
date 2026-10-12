@@ -47,13 +47,11 @@ local function IsAuraActiveOnPlayer(spellInput)
         local ok, aura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, spellID)
         if ok and aura then return true end
 
-        if C_Spell and C_Spell.GetOverrideSpell then
-            local overrideID = C_Spell.GetOverrideSpell(spellID)
+        local overrideID = Core.Spells:GetOverrideSpell(spellID)
 
-            if overrideID and overrideID ~= spellID then
-                local okOv, auraOv = pcall(C_UnitAuras.GetPlayerAuraBySpellID, overrideID)
-                if okOv and auraOv then return true end
-            end
+        if overrideID and overrideID ~= spellID then
+            local okOv, auraOv = pcall(C_UnitAuras.GetPlayerAuraBySpellID, overrideID)
+            if okOv and auraOv then return true end
         end
     end
 

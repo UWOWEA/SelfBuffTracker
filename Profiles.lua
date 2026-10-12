@@ -1,4 +1,5 @@
 local addonName, addon = ...
+local Core = _G["Core"]
 
 local PROFILE_FIELDS = {
     "trackedSpells",
@@ -19,7 +20,7 @@ local PROFILE_FIELDS = {
 }
 
 local function GetCharacterKey()
-    return GetRealmName() .. "-" .. UnitName("player")
+    return GetRealmName() .. "-" .. Core.Unit.Player:Name()
 end
 
 function addon.SaveCharacterSnapshot()
@@ -27,8 +28,9 @@ function addon.SaveCharacterSnapshot()
 
     SelfBuffTrackerAccountDB = SelfBuffTrackerAccountDB or {}
 
-    local _, class = UnitClass("player")
-    local snapshot = { class = class, name = UnitName("player"), realm = GetRealmName() }
+    local player = Core.Unit.Player
+    local _, class = player:Class()
+    local snapshot = { class = class, name = player:Name(), realm = GetRealmName() }
 
     for _, field in ipairs(PROFILE_FIELDS) do
         local value = SelfBuffTrackerDB[field]
@@ -42,7 +44,7 @@ function addon.GetOtherClassProfiles()
     local results = {}
     if not SelfBuffTrackerAccountDB then return results end
 
-    local _, myClass = UnitClass("player")
+    local _, myClass = Core.Unit.Player:Class()
     local myKey = GetCharacterKey()
 
     for key, profile in pairs(SelfBuffTrackerAccountDB) do
