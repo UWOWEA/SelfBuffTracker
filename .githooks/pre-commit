@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Enable with: git config core.hooksPath .githooks
+root="$(git rev-parse --show-toplevel)"
+exec "$root/scripts/check-filenames.sh" --staged
