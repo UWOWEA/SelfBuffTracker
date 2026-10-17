@@ -159,6 +159,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
         end
 
         local iconSize = SelfBuffTrackerDB.iconSize
+        local iconVisibility = SelfBuffTrackerDB.iconVisibility / 100
         local spacing = SelfBuffTrackerDB.spacing
         local cols = SelfBuffTrackerDB.columns or 3
         local rows = SelfBuffTrackerDB.rows or 5
@@ -182,7 +183,7 @@ local function CheckBuffs(isTimeIgnored, muteSound)
                 if not inCombat then
                     icon:Show()
                 end
-                icon:SetAlpha(1)
+                icon:SetAlpha(iconVisibility)
                 icon.texture:SetTexture(GetSpellTexture(spellId))
                 local clickSpellID = GetClickSpellID(spellId)
                 UpdateIconCooldown(icon, clickSpellID)

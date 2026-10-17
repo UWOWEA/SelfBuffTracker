@@ -36,6 +36,7 @@ local BASE = {
     DEBUG_ENABLED = "Enable debug",
     LOCKED_POSITION = "Locked position",
     ICON_SIZE = "Icon size",
+    ICON_VISIBILITY = "Icon visibility",
     COLUMS_AMOUNT = "Colums amount",
     ICON_SPACING = "Icon spacing",
     SOUND_LABEL = "Alert sound:",

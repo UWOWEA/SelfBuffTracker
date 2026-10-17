@@ -1,4 +1,4 @@
-local addonName, addon = ...
+local _, addon = ...
 local L = addon.L
 
 ---@class SliderFrame : Frame, MinimalSliderWithSteppersTemplate
@@ -115,33 +115,6 @@ local function CreateRevertButton(name, parent, labelText, callback)
     return button
 end
 
----@param name string
----@param parent Frame
----@param labelText string
----@param defaultVal boolean
----@param callback function
----@return CheckButton
-local function CreateCheckbox(name, parent, labelText, defaultVal, callback)
-    local checkBox = CreateFrame("CheckButton", name, parent, "OptionsBaseCheckButtonTemplate")
-    checkBox:SetChecked(defaultVal)
-
-    checkBox.Label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    checkBox.Label:SetJustifyH("LEFT")
-    checkBox.Label:SetWidth(120)
-    checkBox.Label:SetText(labelText)
-    checkBox.Label:SetFontHeight(14)
-
-    checkBox:SetPoint("LEFT", checkBox.Label, "RIGHT", 15, 0)
-    checkBox.Label:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, -215)
-
-    checkBox:HookScript("OnClick", function()
-        if not checkBox:IsVisible() then return end
-        callback(checkBox:GetChecked())
-    end)
-
-    return checkBox
-end
-
 ---@param slider SliderFrame
 ---@param yOffset integer
 local function AnchorSliderRow(slider, yOffset)
@@ -153,6 +126,7 @@ end
 
 SelfBuffTrackerDB = SelfBuffTrackerDB or {}
 local initSize = SelfBuffTrackerDB.iconSize or 50
+local initIconVisibility = SelfBuffTrackerDB.iconVisibility or 1
 local initCols = SelfBuffTrackerDB.columns or 3
 local initRows = SelfBuffTrackerDB.rows or 5
 local initSpacing = SelfBuffTrackerDB.spacing or 10
@@ -167,6 +141,16 @@ addon.editDialogSizeSlider = CreateEditModeSlider(
 )
 AnchorSliderRow(addon.editDialogSizeSlider, -55)
 
+addon.editDialogIconVisibilitySlider = CreateEditModeSlider(
+    "SBTIconVisibilitySlider", addon.editDialog, L.ICON_VISIBILITY or "Icon visibility",
+    10, 100, 1, initIconVisibility,
+    function(val)
+        SelfBuffTrackerDB.iconVisibility = val
+        if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
+    end
+)
+AnchorSliderRow(addon.editDialogIconVisibilitySlider, -95)
+
 addon.editDialogColSlider = CreateEditModeSlider(
     "SBTColSlider", addon.editDialog, L.COLUMS_AMOUNT or "Columns amount",
     1, 10, 1, initCols,
@@ -175,7 +159,7 @@ addon.editDialogColSlider = CreateEditModeSlider(
         if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
     end
 )
-AnchorSliderRow(addon.editDialogColSlider, -95)
+AnchorSliderRow(addon.editDialogColSlider, -135)
 
 addon.editDialogRowSlider = CreateEditModeSlider(
     "SBTRowSlider", addon.editDialog, L.ROWS_AMOUNT or "Rows amount",
@@ -185,7 +169,7 @@ addon.editDialogRowSlider = CreateEditModeSlider(
         if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
     end
 )
-AnchorSliderRow(addon.editDialogRowSlider, -135)
+AnchorSliderRow(addon.editDialogRowSlider, -175)
 
 addon.editDialogSpacingSlider = CreateEditModeSlider(
     "SBTSpacingSlider", addon.editDialog, L.ICON_SPACING or "Spacing",
@@ -195,7 +179,7 @@ addon.editDialogSpacingSlider = CreateEditModeSlider(
         if type(addon.CheckBuffs) == "function" then addon.CheckBuffs(false) end
     end
 )
-AnchorSliderRow(addon.editDialogSpacingSlider, -175)
+AnchorSliderRow(addon.editDialogSpacingSlider, -215)
 
 addon.editDialogRevert = CreateRevertButton(
     "SBTEditDialogRevert",
@@ -233,11 +217,13 @@ local function OnShow()
     addon.CreateBackupSetting()
     SelfBuffTrackerDB = SelfBuffTrackerDB or {}
     local size = SelfBuffTrackerDB.iconSize or 50
+    local iconVisibility = SelfBuffTrackerDB.iconVisibility or 100
     local cols = SelfBuffTrackerDB.columns or 3
     local spacing = SelfBuffTrackerDB.spacing or 10
     local rows = SelfBuffTrackerDB.rows or 5
 
     addon.editDialogSizeSlider:SetValue(size)
+    addon.editDialogIconVisibilitySlider:SetValue(iconVisibility)
     addon.editDialogColSlider:SetValue(cols)
     addon.editDialogSpacingSlider:SetValue(spacing)
     addon.editDialogRowSlider:SetValue(rows)

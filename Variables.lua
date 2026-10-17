@@ -4,6 +4,7 @@ addon.defaultConfig = {
     trackedSpells = {},
     trackedFlasks = {},
     iconSize = 50,
+    iconVisibility = 1,
     spacing = 10,
     columns = 3,
     rows = 5,
